@@ -7,15 +7,21 @@ addpath('/home/alexandresayal/Documents/MATLAB/jsonlab')
 
 %% Settings
 subID = 'VPMBAUS02';
+
 rawDicomFolder = '/home/alexandresayal/Desktop/BIDS-VPMB/sourcedata/02/01';
 niiFolder = '/home/alexandresayal/Desktop/VPMB-NIFTI/VPMBAUS02';
 stcibitFolder = '/home/alexandresayal/Desktop/VPMB-STCIBIT/VPMBAUS02';
+physioFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS02_LOGS';
+keypressFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS02_KEYS';
+protocolFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/PRTs/renamedForSTCIBIT';
+eyetrackerFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS02_EYETRACKER';
 
+%% Conversion to Nifti
+
+% create nii folder if not exists
 if ~exist(niiFolder,'dir')
     mkdir(niiFolder)
 end
-
-%% Conversion to Nifti
 
 disp('--| Converting files to nii...')
 
@@ -24,10 +30,14 @@ bCmd = sprintf('dcm2niix -f "%%d" -p y -z y -o "%s" "%s"',niiFolder,rawDicomFold
 system(bCmd)
 
 %% Import naming match
+% custom file with the match between the sequence name and the desired name
+% in the STCIBIT format.
 
 T = importMatchFile('runNameMatch.csv');
 
 %% Read NIFTI folder and copy files
+
+disp('--| Copying nii files...')
 
 Ndir = dir(niiFolder);
 
@@ -95,51 +105,108 @@ end
 
 RunOrder = sortrows(RunOrder,2);
 
-%% Rename Linked data
+%% Copy Physio files
 
-sourceFolder = '/home/alexandresayal/Desktop/VPMB-STCIBIT/VPMBAUS01/RAW/';
+disp('--| Copying physio files...')
 
-D = dir([sourceFolder 'TASK*']);
+D = dir(fullfile(physioFolder,'*.log'));
+D = sort(extractfield(D,'name'))';
+nFileTypes = 3; % _Info, _RESP, _PULS
+idx = 1;
 
-for ii = 1:length(D)
-    
-    linkedFolder = fullfile(sourceFolder,D(ii).name,'LINKED');
-    
-    try
+if length(D) ~= size(RunOrder,1)*nFileTypes
+    warning('number of physio files is unexpected!')
+end
+
+for ii = 1:size(RunOrder,1)
+   
+   for jj = 1:nFileTypes
+       
+        aux = strsplit(D{idx},'_');
         
-        % Eyetracker files
-        Daux = dir(fullfile(linkedFolder,'*.edf'));
+        copyfile(fullfile(physioFolder,D{idx}),...
+            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_PHYSIO_' aux{end}]));
         
-        movefile(fullfile(linkedFolder,Daux(1).name),...
-            fullfile(linkedFolder,[subID '_EYETRACKER.edf']));
+        idx = idx + 1;
         
-        % Keypress files
-        Daux = dir(fullfile(linkedFolder,'*.mat'));
-        
-        movefile(fullfile(linkedFolder,Daux(1).name),...
-            fullfile(linkedFolder,[subID '_KEYPRESS.edf']));
-        
-        % Physio files
-        Daux = dir(fullfile(linkedFolder,'*.log'));
-        
-        for jj = 1:length(Daux)
-            
-            aux = strsplit(Daux(jj).name,'_');
-            
-            movefile(fullfile(linkedFolder,Daux(jj).name),...
-                fullfile(linkedFolder,[subID '_PHYSIO_' aux{end}]));
-            
-        end
-        
-    catch
-        warning('Already renamed')
-    end
+   end
     
 end
 
+%% Copy Eyetracker data
 
+disp('--| Copying eyetracker files...')
 
+D = dir(fullfile(eyetrackerFolder,'*.edf'));
+D = sort(extractfield(D,'name'))';
 
+if length(D) ~= size(RunOrder,1)
+    warning('number of eyetracker files is unexpected!')
+end
+
+for ii = 1:size(RunOrder,1)
+    
+     copyfile(fullfile(eyetrackerFolder,D{ii}),...
+            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_EYETRACKER.edf']));
+    
+end
+
+%% Copy keypress data
+
+disp('--| Copying keypress files...')
+
+D = dir(fullfile(keypressFolder,'*.mat'));
+D = extractfield(D,'name')';
+
+% clean unwanted files (OUT and Aborted runs)
+idxtoRemove = [];
+times = cell(length(D),1);
+
+for ii = 1:length(D)
+    
+   aux = strsplit(D{ii},'_');
+   
+   if strcmp(aux{2},'OUT') || strcmp(aux{end},'Aborted.mat')
+       idxtoRemove = [idxtoRemove ii];
+   end
+    
+   times(ii) = aux(4);
+   
+end
+
+times(idxtoRemove) = [];
+D(idxtoRemove) = [];
+
+% order list
+[~,ord] = sort(times);
+D = D(ord);
+
+if length(D) ~= size(RunOrder,1)
+    warning('number of keypress files is unexpected!')
+end
+
+% copy
+for ii = 1:size(RunOrder,1)
+    
+     copyfile(fullfile(keypressFolder,D{ii}),...
+            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_KEYPRESS.mat']));
+    
+end
+
+%% Copy protocol data
+
+disp('--| Copying protocol files...')
+
+for ii = 1:size(RunOrder,1)
+    
+     copyfile(fullfile(protocolFolder,[RunOrder{ii,1} '.prt']),...
+            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_PROTOCOL.prt']));
+    
+end
+
+%% Done
+
+disp('--| Done!')
 
 
 
