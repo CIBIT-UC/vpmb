@@ -1,26 +1,35 @@
+clear,clc,close all
+
 %% Requirements
 
-% https://github.com/fangq/jsonlab
+% 1) jsonlab (https://github.com/fangq/jsonlab)
 addpath('/home/alexandresayal/Documents/MATLAB/jsonlab')
 
+% 2) dcm2niix (https://github.com/rordenlab/dcm2niix)
 % Make sure dcm2niix version 1.0.20201102  is installed
 
 %% Settings
-subID = 'VPMBAUS02';
+subID = 'VPMBAUS23';
 
-rawDicomFolder = '/home/alexandresayal/Desktop/BIDS-VPMB/sourcedata/02/01';
-niiFolder = '/home/alexandresayal/Desktop/VPMB-NIFTI/VPMBAUS02';
-stcibitFolder = '/home/alexandresayal/Desktop/VPMB-STCIBIT/VPMBAUS02';
-physioFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS02_LOGS';
-keypressFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS02_KEYS';
+rawDicomFolder = '/home/alexandresayal/Desktop/BIDS-VPMB/sourcedata/15/01';
+niiFolder = '/home/alexandresayal/Desktop/VPMB-NIFTI/VPMBAUS23';
+stcibitFolder = '/home/alexandresayal/Desktop/VPMB-STCIBIT/VPMBAUS23';
+physioFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_DistortionCorr/VPMBAUS23_LOGS';
+keypressFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_DistortionCorr/VPMBAUS23_KEYS';
+eyetrackerFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_DistortionCorr/VPMBAUS23_EYETRACKER';
+
 protocolFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/PRTs/renamedForSTCIBIT';
-eyetrackerFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS02_EYETRACKER';
 
 %% Conversion to Nifti
 
-% create nii folder if not exists
+% create nii folder if it does not exist
 if ~exist(niiFolder,'dir')
     mkdir(niiFolder)
+end
+
+% check if folder is empty
+if length(dir(niiFolder)) > 2
+   error('Please remove all files in niiFolder') 
 end
 
 disp('--| Converting files to nii...')
@@ -74,7 +83,7 @@ for ii = 3:length(Ndir) % mind this 3 - it may vary with OS
             
             % create folder if does not exist
             if ~exist(fullfile(stcibitFolder,'RAW',folders{jj}),'dir')
-                mkdir(fullfile(stcibitFolder,'RAW',folders{jj},'LINKED'));
+                mkdir(fullfile(stcibitFolder,'RAW',folders{jj},'LINKED')); % creating the longest path creates all the previous levels
             end
             
             copyfile(fullfile(niiFolder,Ndir(ii).name),...
@@ -138,17 +147,23 @@ end
 disp('--| Copying eyetracker files...')
 
 D = dir(fullfile(eyetrackerFolder,'*.edf'));
-D = sort(extractfield(D,'name'))';
 
-if length(D) ~= size(RunOrder,1)
-    warning('number of eyetracker files is unexpected!')
-end
-
-for ii = 1:size(RunOrder,1)
+if ~isempty(D) % no eyetracker data available
     
-     copyfile(fullfile(eyetrackerFolder,D{ii}),...
+    if length(D) ~= size(RunOrder,1)
+        warning('number of eyetracker files is unexpected!')
+    end
+    
+    D = sort(extractfield(D,'name'))';
+    
+    for ii = 1:size(RunOrder,1)
+        
+        copyfile(fullfile(eyetrackerFolder,D{ii}),...
             fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_EYETRACKER.edf']));
-    
+        
+    end
+else
+    warning('No eyetracker files available. Moving on.')
 end
 
 %% Copy keypress data
