@@ -9,11 +9,11 @@ addpath('/home/alexandresayal/Documents/MATLAB/jsonlab')
 % Make sure dcm2niix version 1.0.20201102  is installed
 
 %% Settings
-subID = 'VPMBAUS23';
+subID = 'VPMBAUS01';
 
 rawDicomFolder = '/home/alexandresayal/Desktop/BIDS-VPMB/sourcedata/15/01';
-niiFolder = '/home/alexandresayal/Desktop/VPMB-NIFTI/VPMBAUS23';
-stcibitFolder = '/home/alexandresayal/Desktop/VPMB-STCIBIT/VPMBAUS23';
+niiFolder = ['/home/alexandresayal/Desktop/VPMB-NIFTI/' subID];
+stcibitFolder = ['/home/alexandresayal/Desktop/VPMB-STCIBIT/' subID];
 physioFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_DistortionCorr/VPMBAUS23_LOGS';
 keypressFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_DistortionCorr/VPMBAUS23_KEYS';
 eyetrackerFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_DistortionCorr/VPMBAUS23_EYETRACKER';
@@ -113,6 +113,10 @@ for ii = 1:length(D)
 end
 
 RunOrder = sortrows(RunOrder,2);
+
+% save run order as txt
+tt = table(RunOrder(:,1),RunOrder(:,2),'VariableNames',{'RunName','Time'});
+write(tt,fullfile(stcibitFolder,'RAW','runOrder.txt'))
 
 %% Copy Physio files
 
