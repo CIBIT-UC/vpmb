@@ -9,14 +9,14 @@ addpath('/home/alexandresayal/Documents/MATLAB/jsonlab')
 % Make sure dcm2niix version 1.0.20201102  is installed
 
 %% Settings
-subID = 'VPMBAUS01';
+subID = 'VPMBAUS16';
 
-rawDicomFolder = '/home/alexandresayal/Desktop/BIDS-VPMB/sourcedata/15/01';
+rawDicomFolder = '/home/alexandresayal/Desktop/BIDS-VPMB/sourcedata/12/01';
 niiFolder = ['/home/alexandresayal/Desktop/VPMB-NIFTI/' subID];
 stcibitFolder = ['/home/alexandresayal/Desktop/VPMB-STCIBIT/' subID];
-physioFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_DistortionCorr/VPMBAUS23_LOGS';
-keypressFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_DistortionCorr/VPMBAUS23_KEYS';
-eyetrackerFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_DistortionCorr/VPMBAUS23_EYETRACKER';
+physioFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS16_LOGS';
+keypressFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS16_KEYS';
+eyetrackerFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS16_EYETRACKER';
 
 protocolFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/PRTs/renamedForSTCIBIT';
 
@@ -128,7 +128,7 @@ nFileTypes = 3; % _Info, _RESP, _PULS
 idx = 1;
 
 if length(D) ~= size(RunOrder,1)*nFileTypes
-    warning('number of physio files is unexpected!')
+    error('number of physio files is unexpected!')
 end
 
 for ii = 1:size(RunOrder,1)
