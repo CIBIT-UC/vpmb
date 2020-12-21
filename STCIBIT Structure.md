@@ -4,7 +4,7 @@
 MAIN folder
 │   PROTOCOL.pdf
 │   SEQUENCES.pdf   
-│
+│   VERSION.txt
 └───<subID>
 │   │
 │   └───RAW
@@ -26,7 +26,7 @@ MAIN folder
 │   │           <subID>_PHYSIO_RESP.log
 │   │           <subID>_PHYSIO_PULS.log
 │   │           <subID>_KEYPRESS.mat
-│   │ 
+│   │
 │   └───processed data will be placed here inside each folder
 │
 └───<subID>
@@ -39,6 +39,7 @@ MAIN folder
 VPMB-STCIBIT/
 ├── PROTOCOL.pdf
 ├── SEQUENCES.pdf
+├── VERSION.txt
 ├── VPMBAUS01
 │   └── RAW
 │       ├── T1W
