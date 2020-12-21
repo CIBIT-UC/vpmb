@@ -1,3 +1,17 @@
+% ----------------------------------------------------------------------- %
+% ----------------------------------------------------------------------- %
+% MODULE 1 - Data managment
+% Script Name: M1_RAWtoSTCIBIT.m
+%
+% Intended for...
+%
+% Author: Alexandre Sayal, PhD student
+% Coimbra Institute for Biomedical Imaging and Translational Research
+% Email address: alexandresayal@gmail.com
+% December 2020; Last revision: 21-Dec-2020
+% ----------------------------------------------------------------------- %
+
+%% Start clean
 clear,clc,close all
 
 %% Requirements
