@@ -247,7 +247,7 @@ flirt -ref $WD/spe_brain.nii.gz \
       -out $WD/func2spe.nii.gz \
       -interp sinc \
       -init $WD/func2spe.mat \
-      -applyxfm 
+      -applyxfm
       
 # Calculate cost function value (source https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FLIRT/FAQ)
 echo "Cost function=`flirt -in $WD/func01_brain.nii.gz -ref $WD/spe_brain.nii.gz -schedule $FSLDIR/etc/flirtsch/measurecost1.sch -init $WD/func2spe.mat | head -1 | cut -f1 -d' '`"
