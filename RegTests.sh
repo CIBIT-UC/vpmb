@@ -7,20 +7,19 @@
 #  environment: FSLDIR
 
 # --------------------------------------------------------------------------------
-#  Define Folders
+#  Define Function
 # --------------------------------------------------------------------------------
-VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT"
-#subID="VPMBAUS21"
 
-D=`ls -d ${VPDIR}/*/`
-printf "subID M1 M2\n" > $VPDIR/cost_values.txt
-
-for subDir in $D; do
+mainfunction () {
+    VPDIR=$1
+    outputFileName=$2
+    TASKNAME=$3
+    subDir=$4
 
     WD=$subDir
     arrIN=(${WD//'/'/ }) # split strings
     subID=${arrIN[-1]} # retrieve subject ID 
-    echo "-- Participant ${subID} ---------------------"
+    echo "--- Participant ${subID} ---------------------"
 
     # create or clean folder
     if [ ! -e $WD/regTests ] ; then # not exists
@@ -34,10 +33,10 @@ for subDir in $D; do
     fi
 
     # copy functional
-    cp $WD/RAW/TASK-LOC-1000/${subID}_TASK-LOC-1000.nii.gz $WD/regTests/func.nii.gz
+    cp $WD/RAW/${TASKNAME}/${subID}_${TASKNAME}.nii.gz $WD/regTests/func.nii.gz
 
     # copy SPE
-    cp $WD/RAW/TASK-LOC-1000/${subID}_FMAP-SPE-AP.nii.gz $WD/regTests/spe.nii.gz
+    cp $WD/RAW/${TASKNAME}/${subID}_FMAP-SPE-AP.nii.gz $WD/regTests/spe.nii.gz
 
     # create functional reference
     fslroi $WD/regTests/func.nii.gz $WD/regTests/func01.nii.gz 0 1
@@ -59,61 +58,100 @@ for subDir in $D; do
     #  Use SPE-AP as reference
     # --------------------------------------------------------------------------------
 
+    # Bias field correction
+    fast -B $WD/func01_brain.nii.gz &
+    fast -B $WD/spe_brain.nii.gz
+
     # Align func01 to SPE-AP
-    flirt -ref $WD/spe_brain.nii.gz \
-        -in $WD/func01_brain.nii.gz \
+    flirt -ref $WD/spe_brain_restore.nii.gz \
+        -in $WD/func01_brain_restore.nii.gz \
         -out $WD/func2spe.nii.gz \
         -omat $WD/func2spe.mat \
-        -interp spline \
+        -cost normmi \
+        -interp sinc \
         -dof 6
 
     # Calculate cost function value
-    cost1=`flirt -in $WD/func01_brain.nii.gz -ref $WD/spe_brain.nii.gz -schedule $FSLDIR/etc/flirtsch/measurecost1.sch -init $WD/func2spe.mat | head -1 | cut -f1 -d' '`
+    cost1a=`flirt -in $WD/func01_brain_restore.nii.gz -ref $WD/spe_brain_restore.nii.gz -schedule $FSLDIR/etc/flirtsch/measurecost1.sch -init $WD/func2spe.mat -cost corratio | head -1 | cut -f1 -d' '`
+    cost1b=`flirt -in $WD/func01_brain_restore.nii.gz -ref $WD/spe_brain_restore.nii.gz -schedule $FSLDIR/etc/flirtsch/measurecost1.sch -init $WD/func2spe.mat -cost mutualinfo | head -1 | cut -f1 -d' '`
 
     # --------------------------------------------------------------------------------
     #  Use func01 as reference and then invert
     # --------------------------------------------------------------------------------
 
     # Align SPE-AP to func01
-    flirt -ref $WD/func01_brain.nii.gz \
-        -in $WD/spe_brain.nii.gz \
+    flirt -ref $WD/func01_brain_restore.nii.gz \
+        -in $WD/spe_brain_restore.nii.gz \
         -out $WD/spe2func.nii.gz \
         -omat $WD/spe2func.mat \
+        -cost normmi \
         -interp sinc \
         -dof 6
 
     # Invert transformation matrix
     convert_xfm -inverse $WD/spe2func.mat \
-                -omat $WD/func2spe.mat
+                -omat $WD/func2speM2.mat
 
     # Apply inverse transformation matrix to func01
-    flirt -ref $WD/spe_brain.nii.gz \
-        -in $WD/func01_brain.nii.gz \
-        -out $WD/func2spe.nii.gz \
+    flirt -ref $WD/spe_brain_restore.nii.gz \
+        -in $WD/func01_brain_restore.nii.gz \
+        -out $WD/func2speM2.nii.gz \
         -interp sinc \
-        -init $WD/func2spe.mat \
+        -init $WD/func2speM2.mat \
         -applyxfm 
         
     # Calculate cost function value (source https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FLIRT/FAQ)
-    cost2=`flirt -in $WD/func01_brain.nii.gz -ref $WD/spe_brain.nii.gz -schedule $FSLDIR/etc/flirtsch/measurecost1.sch -init $WD/func2spe.mat | head -1 | cut -f1 -d' '`
+    cost2a=`flirt -in $WD/func01_brain_restore.nii.gz -ref $WD/spe_brain_restore.nii.gz -schedule $FSLDIR/etc/flirtsch/measurecost1.sch -init $WD/func2speM2.mat -cost corratio | head -1 | cut -f1 -d' '`
+    cost2b=`flirt -in $WD/func01_brain_restore.nii.gz -ref $WD/spe_brain_restore.nii.gz -schedule $FSLDIR/etc/flirtsch/measurecost1.sch -init $WD/func2speM2.mat -cost mutualinfo | head -1 | cut -f1 -d' '`
 
     # --------------------------------------------------------------------------------
     #  Write to file
     # --------------------------------------------------------------------------------
 
-    printf "%s %s %s\n" ${subID} ${cost1} ${cost2}  >> $VPDIR/cost_values.txt
+    printf "%s %s %s %s %s\n" ${subID} ${cost1a} ${cost2a} ${cost1b} ${cost2b}  >> $VPDIR/cost_values_restore.txt
 
 
 
-    echo "---------------------------------------------"
+    echo "----------------------------------------------"
+} # end function
+
+# --------------------------------------------------------------------------------
+#  Define Folders
+# --------------------------------------------------------------------------------
+VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT"
+TASKNAME="TASK-LOC-1000"
+outputFileName="cost_values_restore.txt"
+
+D=`ls -d ${VPDIR}/*/`
+printf "subID M1a M2a M1b M2b\n" > $VPDIR/$outputFileName # create file, replacing existing, add header
+
+# Iterate on the subjects
+for subDir in $D
+do
+
+    mainfunction $VPDIR $outputFileName $TASKNAME $subDir &
+
 done
+wait
+echo "--> All subs done."
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------------------
+# MANUAL TESTS
+# --------------------------------------------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------------------
+
+VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT"
+TASKNAME="TASK-LOC-1000"
+subID="VPMBAUS01"
 
 # --------------------------------------------------------------------------------
 #  Copy files and Brain Extraction
 # --------------------------------------------------------------------------------
 
 # working directory
-#WD=${VPDIR}/${subID}
+WD=${VPDIR}/${subID}
 
 # create or clean folder
 if [ ! -e $WD/regTests ] ; then # not exists
@@ -127,10 +165,10 @@ else
 fi
 
 # copy functional
-cp $WD/RAW/TASK-LOC-1000/${subID}_TASK-LOC-1000.nii.gz $WD/regTests/func.nii.gz
+cp $WD/RAW/${TASKNAME}/${subID}_${TASKNAME}.nii.gz $WD/regTests/func.nii.gz
 
 # copy SPE
-cp $WD/RAW/TASK-LOC-1000/${subID}_FMAP-SPE-AP.nii.gz $WD/regTests/spe.nii.gz
+cp $WD/RAW/${TASKNAME}/${subID}_FMAP-SPE-AP.nii.gz $WD/regTests/spe.nii.gz
 
 # create functional reference
 fslroi $WD/regTests/func.nii.gz $WD/regTests/func01.nii.gz 0 1
@@ -153,22 +191,38 @@ WD=${VPDIR}/${subID}/regTests
 # --------------------------------------------------------------------------------
 
 # Bias field correction
-# fast -B $WD/func01_brain.nii.gz
-# fast -B $WD/spe_brain.nii.gz 
+fast -B $WD/func01_brain.nii.gz &
+fast -B $WD/spe_brain.nii.gz
 
 # Align func01 to SPE-AP
-flirt -ref $WD/spe_brain.nii.gz \
-      -in $WD/func01_brain.nii.gz \
+flirt -ref $WD/spe_brain_restore.nii.gz \
+      -in $WD/func01_brain_restore.nii.gz \
       -out $WD/func2spe.nii.gz \
       -omat $WD/func2spe.mat \
-      -interp spline \
+      -cost normmi \
+      -interp sinc \
       -dof 6
 
 # Calculate cost function value (source https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FLIRT/FAQ)
-echo "Cost function=`flirt -in $WD/func01_brain.nii.gz -ref $WD/spe_brain.nii.gz -schedule $FSLDIR/etc/flirtsch/measurecost1.sch -init $WD/func2spe.mat | head -1 | cut -f1 -d' '`"
+echo "Cost function=`flirt -in $WD/func01_brain.nii.gz -ref $WD/spe_brain.nii.gz -schedule $FSLDIR/etc/flirtsch/measurecost1.sch -init $WD/func2spe.mat -cost normcorr | head -1 | cut -f1 -d' '`"
 
 # Check alignment visually
-# fslview_deprecated $WD/spe_brain.nii.gz $WD/func2spe.nii.gz &
+fslview_deprecated $WD/spe_brain_restore.nii.gz $WD/func2spe.nii.gz &
+
+# --------------------------------------------------------------------------------
+#  Test fake SBRef
+# --------------------------------------------------------------------------------
+
+flirt -ref $WD/spe_brain.nii.gz \
+      -in $WD/tfMRI_RunA_AP_SMS6_TR1000_SBRef.nii.gz \
+      -out $WD/sbref2spe.nii.gz \
+      -omat $WD/sbref2spe.mat \
+      -cost normmi \
+      -interp sinc \
+      -dof 6
+
+fslview_deprecated $WD/spe_brain.nii.gz $WD/sbref2spe.nii.gz &
+
 
 
 # --------------------------------------------------------------------------------
