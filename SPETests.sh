@@ -11,8 +11,8 @@
 # --------------------------------------------------------------------------------
 
 VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT"   # data folder
-subID="VPMBAUS01"                     # subject ID
-taskName="TASK-LOC-1000"              # task name
+subID="VPMBAUS03"                     # subject ID
+taskName="TASK-UA-0500"               # task name
 WD="${VPDIR}/${subID}/speTests"       # working directory
 
 # --------------------------------------------------------------------------------
@@ -34,21 +34,21 @@ fi
 # --------------------------------------------------------------------------------
 
 # copy functional and SPEs
-cp $VPDIR/$subID/RAW/${taskName}/${subID}_${taskName}.nii.gz $WD/func.nii.gz &
-cp $VPDIR/$subID/RAW/${taskName}/${subID}_FMAP-SPE-AP.nii.gz $WD/spe-ap.nii.gz &
+cp $VPDIR/$subID/RAW/${taskName}/${subID}_${taskName}.nii.gz $WD/func.nii.gz
+cp $VPDIR/$subID/RAW/${taskName}/${subID}_FMAP-SPE-AP.nii.gz $WD/spe-ap.nii.gz
 cp $VPDIR/$subID/RAW/${taskName}/${subID}_FMAP-SPE-PA.nii.gz $WD/spe-pa.nii.gz
 
 # create func01 (first volume of functional data)
 fslroi $WD/func.nii.gz $WD/func01.nii.gz 0 1
 
 # BET func01 and SPE
-bet2 $WD/func01.nii.gz $WD/funcMask -f 0.3 -n -m &   # calculate func01 mask
+bet2 $WD/func01.nii.gz $WD/funcMask -f 0.3 -n -m     # calculate func01 mask
 bet2 $WD/spe-ap.nii.gz $WD/spe-apMask -f 0.3 -n -m   # calculate spe-ap mask
 
-mv $WD/funcMask_mask.nii.gz $WD/func_brain_mask.nii.gz &    # rename func01 mask
+mv $WD/funcMask_mask.nii.gz $WD/func_brain_mask.nii.gz      # rename func01 mask
 mv $WD/spe-apMask_mask.nii.gz $WD/spe-ap_brain_mask.nii.gz  # rename spe mask
 
-fslmaths $WD/func01.nii.gz -mas $WD/func_brain_mask.nii.gz $WD/func01_brain.nii.gz &  # apply func01 mask
+fslmaths $WD/func01.nii.gz -mas $WD/func_brain_mask.nii.gz $WD/func01_brain.nii.gz    # apply func01 mask
 fslmaths $WD/spe-ap.nii.gz -mas $WD/spe-ap_brain_mask.nii.gz $WD/spe-ap_brain.nii.gz  # apply spe mask
 
 # Bias field correction
@@ -79,10 +79,9 @@ flirt -ref $WD/spe-ap_brain_restore.nii.gz \
 mcflirt -in $WD/func.nii.gz \
         -refvol 0 \
         -o $WD/func_mc \
-        -sinc_final \
-        -mats -plots
+        -mats -plots -report
 
-# Concatenate func2spe and mc matrices for all volumes
+# Concatenate func2spe and mc matrices for all volumes (source: https://www.jiscmail.ac.uk/cgi-bin/webadmin?A2=fsl;21c97ca8.06)
 nVols=$((`fslnvols $WD/func.nii.gz`-1))
 
 for vv in $(eval echo "{0..$nVols}")
@@ -127,7 +126,7 @@ topup --imain=${WD}/speMerge \
       --rbmout=${WD}/MotionMatrix \
       --jacout=${WD}/Jacobian -v
 
-# Apply topup
+# Apply topup (this uses spline interpolation, no option for sinc)
 applytopup --imain=$WD/func_mc2spe.nii.gz \
            --datain=$WD/acqparams.txt \
            --inindex=1 \
@@ -138,10 +137,11 @@ applytopup --imain=$WD/func_mc2spe.nii.gz \
 # Check visually
 fslview_deprecated $WD/func_mc2spe.nii.gz $WD/func_mc_dc2spe.nii.gz &
 
-# Calculate Equivalent Field Map
+# Calculate Equivalent Field Map (magnitude+phase)
 fslmaths ${WD}/TopupField -mul 6.283 ${WD}/GREfromTOPUP-PHASE
 fslmaths ${WD}/Magnitudes -Tmean ${WD}/GREfromTOPUP-MAGNITUDE
-bet ${WD}/GREfromTOPUP-MAGNITUDE ${WD}/GREfromTOPUP-MAGNITUDE_brain -f 0.35 -m #Brain extract the magnitude image
+bet ${WD}/GREfromTOPUP-MAGNITUDE ${WD}/GREfromTOPUP-MAGNITUDE_brain -f 0.4 -m #Brain extract the magnitude image
+fslmaths ${WD}/GREfromTOPUP-MAGNITUDE_brain -ero ${WD}/GREfromTOPUP-MAGNITUDE_brain # erode
 
 # Check visually
 fslview_deprecated ${WD}/GREfromTOPUP-MAGNITUDE_brain ${WD}/GREfromTOPUP-PHASE &
