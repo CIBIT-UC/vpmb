@@ -115,6 +115,26 @@ mainfunction () {
     echo "----------------------------------------------"
 } # end function
 
+cleanfunction () {
+    VPDIR=$1
+    outputFileName=$2
+    TASKNAME=$3
+    subDir=$4
+
+    WD=$subDir
+    arrIN=(${WD//'/'/ }) # split strings
+    subID=${arrIN[-1]} # retrieve subject ID 
+    echo "--- Participant ${subID} ---------------------"
+
+    # create or clean folder
+    if [ -e $WD/regTests ] ; then # not exists
+        rm -r $WD/regTests
+        echo "--> regTests folder cleared."
+    else
+        echo "--> regTests folder does not exist."
+    fi
+}
+
 # --------------------------------------------------------------------------------
 #  Define Folders
 # --------------------------------------------------------------------------------
@@ -129,7 +149,8 @@ printf "subID M1a M2a M1b M2b\n" > $VPDIR/$outputFileName # create file, replaci
 for subDir in $D
 do
 
-    mainfunction $VPDIR $outputFileName $TASKNAME $subDir &
+    #mainfunction $VPDIR $outputFileName $TASKNAME $subDir &
+    #cleanfunction $VPDIR $outputFileName $TASKNAME $subDir &
 
 done
 wait
