@@ -93,19 +93,6 @@ mcflirt -in $WD/func_stc.nii.gz \
         -mats -plots -report
 
 # --------------------------------------------------------------------------------
-#  Concatenate func2spe and MC matrices for all volumes
-# --------------------------------------------------------------------------------
-
-nVols=`fslnvols $WD/func.nii.gz`
-
-for ((vv=0; vv < $nVols; vv++))
-do
-    convert_xfm -omat $(printf "${WD}/func_stc_mc.mat/CONCAT_%04d" ${vv}) \
-                -concat $WD/func2spe.mat $(printf "${WD}/func_stc_mc.mat/MAT_%04d" ${vv}) & # the first transform is mc, so it appears in 2nd place
-done
-wait
-
-# --------------------------------------------------------------------------------
 #  TOPUP - Distortion Correction (DC)
 # --------------------------------------------------------------------------------
 
@@ -136,15 +123,22 @@ if [ ! -e $WD/preVols ] ; then # not exists
     echo "--> preVols folder created."
 fi
 
+# Save number of volumes
+nVols=`fslnvols $WD/func.nii.gz`
+
 # Iterate on the volumes
 for ((vv=0; vv < $nVols; vv++))
 do
     (
+    
+    # concatenate func2spe and MC matrices (linear)
+    convert_xfm -omat $(printf "${WD}/func_stc_mc.mat/CONCAT_%04d" ${vv}) \
+                -concat $WD/func2spe.mat $(printf "${WD}/func_stc_mc.mat/MAT_%04d" ${vv})
 
     # isolate raw functional volume $vv
     fslroi $WD/func_stc.nii.gz $(printf "${WD}/preVols/func_%04d.nii.gz" ${vv}) $vv 1 
 
-    # concatenate transformations for volume $vv
+    # concatenate transformations for volume $vv (linear+nonlinear)
     convertwarp --ref=$WD/func01.nii.gz \
             --out=$(printf "${WD}/preVols/MatrixAll_%04d.nii.gz" ${vv}) \
             --premat=$(printf "${WD}/func_stc_mc.mat/CONCAT_%04d" ${vv}) \
@@ -152,7 +146,7 @@ do
             --postmat=$WD/spe2func.mat \
             --rel --verbose
     
-    # Apply warps (mc + dc)
+    # apply warps (mc + dc)
     applywarp -i $(printf "${WD}/preVols/func_%04d.nii.gz" ${vv}) \
               -o $(printf "${WD}/postVols/func_%04d.nii.gz" ${vv}) \
               -r $WD/func01.nii.gz \
@@ -166,7 +160,7 @@ do
 done
 wait
 
-# Create string to merge (separately from the paralell cycle above)
+# Create string of all volumes to merge (separately from the paralell cycle above)
 VolumeMergeSTRING=""
 for ((vv=0; vv < $nVols; vv++))
 do
