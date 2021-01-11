@@ -172,25 +172,8 @@ TR=`fslval ${WD}/func.nii.gz pixdim4 | cut -d " " -f 1`
 fslmerge -tr $fmapDir/filtered_func_data.nii.gz $VolumeMergeSTRING $TR
 
 # --------------------------------------------------------------------------------
-#  Estimate register to T1w
-# --------------------------------------------------------------------------------
-
-# Create aux folders
-if [ ! -e $fmapDir/func2struct ] ; then # not exists
-    mkdir $fmapDir/func2struct
-    echo "--> func2struct folder created."
-fi
-
-# Create func01_stc_mc_dc (first volume of corrected functional data)
-fslroi $fmapDir/filtered_func_data.nii.gz $WD/func2struct/func01_stc_mc_dc.nii.gz 0 1
-
-epi_reg --epi=${WD}/func01_stc_mc_dc.nii.gz \
-        --t1=$VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W.nii.gz \
-        --t1brain=$VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W_brain.nii.gz \
-        --out=$WD/func2struct/func2struct -v
-
-# --------------------------------------------------------------------------------
 #  Clean up
 # --------------------------------------------------------------------------------
 
 # To do... :)
+# rm -r $WD
