@@ -11,7 +11,7 @@
 # --------------------------------------------------------------------------------
 
 VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT"                         # data folder
-subID="VPMBAUS01"                                           # subject ID
+subID="VPMBAUS03"                                           # subject ID
 taskName="TASK-LOC-1000"                                    # task name
 taskDir="${VPDIR}/${subID}/ANALYSIS/${taskName}"            # task directory
 fmapDir="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-SPE"   # fmap directory
@@ -170,6 +170,11 @@ done
 # Merge all volumes again
 TR=`fslval ${WD}/func.nii.gz pixdim4 | cut -d " " -f 1`
 fslmerge -tr $fmapDir/filtered_func_data.nii.gz $VolumeMergeSTRING $TR
+
+# BET using already calculated mask
+fslmaths $fmapDir/filtered_func_data.nii.gz \
+         -mas $WD/func_brain_mask.nii.gz \
+         $fmapDir/filtered_func_data_brain.nii.gz
 
 # --------------------------------------------------------------------------------
 #  Clean up
