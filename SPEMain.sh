@@ -10,36 +10,6 @@ roTimeList=(0.0415863 0.0432825 0.0415863 0.0415863 0.025030 0.0432825 0.0415863
 
 VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT" # data folder
 
-# --------------------------------------------------------------------------------
-#  Iteration
-# --------------------------------------------------------------------------------
-
-# Iterate on the subjects
-for subID in $subList
-do
-
-    echo "------> SUBJECT ${subID} <------"
-    roCounter=0
-
-    # Iterate on the runs
-    for taskName in $taskList
-    do
-
-        echo "-----> $taskName <-----" 
-
-        roTime=${roTimeList[$roCounter]}
-       
-        # main function
-        speRoutine ${VPDIR} ${subID} ${taskName} ${roTime}
-
-        # increase counter
-        roCounter=$[$roCounter+1]
-
-    done
-
-done
-echo "ALL DONE!"
-
 speRoutine () {
 
     # --------------------------------------------------------------------------------
@@ -256,3 +226,34 @@ speRoutine () {
     cp ${WD}/func_stc_mc_dc_brain_restore_jac.nii.gz $fmapDir/filtered_func_data.nii.gz
 
 }
+
+# --------------------------------------------------------------------------------
+#  Iteration
+# --------------------------------------------------------------------------------
+
+# Iterate on the subjects
+for subID in $subList
+do
+
+    echo "------> SUBJECT ${subID} <------"
+    roCounter=0
+
+    # Iterate on the runs
+    for taskName in $taskList
+    do
+
+        echo "-----> $taskName <-----" 
+
+        roTime=${roTimeList[$roCounter]}
+       
+        # main function
+        speRoutine ${VPDIR} ${subID} ${taskName} ${roTime}
+
+        # increase counter
+        roCounter=$[$roCounter+1]
+
+    done
+
+done
+echo "ALL DONE!"
+
