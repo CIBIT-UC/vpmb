@@ -17,6 +17,7 @@ taskDir="${VPDIR}/${subID}/ANALYSIS/${taskName}"            # task directory
 fmapDir="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-SPE"   # fmap directory
 WD="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-SPE/work"   # working directory
 ro_time=0.0415863 # in seconds
+nThreads=36 # number of threads
 
 # --------------------------------------------------------------------------------
 #  Create/Clean folder
@@ -100,7 +101,7 @@ mcflirt -in $WD/func_stc.nii.gz \
 echo "0 -1 0 $ro_time" > $WD/acqparams.txt
 echo "0 1 0 $ro_time" >> $WD/acqparams.txt
 
-# Merge SPEs
+# Merge SPEs (AP image first)
 fslmerge -t ${WD}/speMerge ${WD}/spe-ap.nii.gz ${WD}/spe-pa.nii.gz
 
 # Topup
@@ -111,6 +112,14 @@ topup --imain=${WD}/speMerge \
       --dfout=${WD}/WarpField \
       --rbmout=${WD}/MotionMatrix \
       --jacout=${WD}/Jacobian -v
+
+# Jacobian to func space
+flirt -ref $WD/func01.nii.gz \
+      -in $WD/Jacobian_01.nii.gz \
+      -out $WD/Jacobian2func.nii.gz \
+      -interp sinc \
+      -init $WD/spe2func.mat \
+      -applyxfm -v
 
 # --------------------------------------------------------------------------------
 #  One Step Resampling (apply MC+DC)
@@ -129,6 +138,7 @@ nVols=`fslnvols $WD/func.nii.gz`
 # Iterate on the volumes
 for ((vv=0; vv < $nVols; vv++))
 do
+
     (
     
     # concatenate func2spe and MC matrices (linear)
@@ -155,7 +165,14 @@ do
 
     echo $(printf "Volume %04d of %04d...\n" ${vv} $nVols)
 
-    ) & # infinite parallel power eheheh might result in catastrophic crash in weak systems but not really but who knows
+    ) & # parallel power
+
+    # allow to execute up to $nThreads jobs in parallel
+    if [[ $(jobs -r -p | wc -l) -ge $nThreads ]]; then
+        # now there are $nThreads jobs already running, so wait here for any job
+        # to be finished so there is a place to start next one.
+        wait -n
+    fi
 
 done
 wait
@@ -169,12 +186,36 @@ done
 
 # Merge all volumes again
 TR=`fslval ${WD}/func.nii.gz pixdim4 | cut -d " " -f 1`
-fslmerge -tr $fmapDir/filtered_func_data.nii.gz $VolumeMergeSTRING $TR
+fslmerge -tr $WD/func_stc_mc_dc.nii.gz $VolumeMergeSTRING $TR
 
-# BET using already calculated mask
-fslmaths $fmapDir/filtered_func_data.nii.gz \
-         -mas $WD/func_brain_mask.nii.gz \
-         $fmapDir/filtered_func_data_brain.nii.gz
+# --------------------------------------------------------------------------------
+#  BET, Bias field correction, Jacobian modulation
+# --------------------------------------------------------------------------------
+
+# BET 1st volume
+bet2 ${WD}/postVols/func_0000.nii.gz\
+     ${WD}/postVols/func_0000 -f 0.3 -m -n
+
+# Apply BET to 1st volume
+fslmaths ${WD}/postVols/func_0000.nii.gz \
+         -mas ${WD}/postVols/func_0000_mask.nii.gz \
+         ${WD}/postVols/func_0000_brain.nii.gz
+
+# Estimate bias field
+fast -b ${WD}/postVols/func_0000_brain.nii.gz
+
+# Apply BET, bias field, and Jacobian modulation to func
+fslmaths $WD/func_stc_mc_dc.nii.gz \
+         -div ${WD}/postVols/func_0000_brain_bias.nii.gz \
+         -mul $WD/Jacobian2func.nii.gz \
+         -mas ${WD}/postVols/func_0000_mask.nii.gz \
+         ${WD}/func_stc_mc_dc_brain_restore_jac.nii.gz
+
+# --------------------------------------------------------------------------------
+#  Export
+# --------------------------------------------------------------------------------
+
+cp ${WD}/func_stc_mc_dc_brain_restore_jac.nii.gz $fmapDir/filtered_func_data.nii.gz
 
 # --------------------------------------------------------------------------------
 #  Clean up
