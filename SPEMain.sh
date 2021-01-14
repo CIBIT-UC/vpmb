@@ -10,6 +10,9 @@ roTimeList=(0.0415863 0.0432825 0.0415863 0.0415863 0.025030 0.0432825 0.0415863
 nThreadsS=6
 VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT" # data folder
 
+# --------------------------------------------------------------------------------
+#  Define function
+# --------------------------------------------------------------------------------
 speRoutine () {
 
     # --------------------------------------------------------------------------------
@@ -231,6 +234,9 @@ speRoutine () {
 #  Iteration
 # --------------------------------------------------------------------------------
 
+# start the clock
+startTime=`date "+%s"`
+
 # Iterate on the subjects
 for subID in $subList
 do
@@ -269,3 +275,11 @@ done
 wait
 echo "ALL DONE!"
 
+# --------------------------------------------------------------------------------
+#  Elapsed time
+# --------------------------------------------------------------------------------
+
+endTime="`date "+%s"`"
+elapsedTime=$(($endTime - $startTime))
+((sec=elapsedTime%60, elapsedTime/=60, min=elapsedTime%60, hrs=elapsedTime/60))
+echo "---> ELAPSED TIME $(printf "%d:%02d:%02d" $hrs $min $sec)"
