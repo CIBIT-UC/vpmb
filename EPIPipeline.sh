@@ -113,6 +113,8 @@ topup --imain=${WD}/epiMerge \
       --datain=$WD/acqparams.txt \
       --config=b02b0.cnf \
       --out=${WD}/Coefficents \
+      --iout=${WD}/Magnitudes \
+      --fout=${WD}/TopupField \
       --dfout=${WD}/WarpField \
       --rbmout=${WD}/MotionMatrix \
       --jacout=${WD}/Jacobian -v
@@ -124,6 +126,11 @@ flirt -ref $WD/func01.nii.gz \
       -interp sinc \
       -init $WD/epi2func.mat \
       -applyxfm -v
+
+# Calculate Equivalent Field Map (magnitude+phase)
+fslmaths ${WD}/TopupField -mul 6.283 ${WD}/GREfromTOPUP-PHASE
+fslmaths ${WD}/Magnitudes -Tmean ${WD}/GREfromTOPUP-MAGNITUDE
+bet ${WD}/GREfromTOPUP-MAGNITUDE ${WD}/GREfromTOPUP-MAGNITUDE_brain -f 0.4 -m #Brain extract the magnitude image
 
 # --------------------------------------------------------------------------------
 #  One Step Resampling (apply MC+DC)
