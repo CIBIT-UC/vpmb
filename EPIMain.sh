@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# screen -L -Logfile epiMain-logfile.txt -S epi
+
 # --------------------------------------------------------------------------------
 #  Setup
 # --------------------------------------------------------------------------------
@@ -7,7 +9,7 @@
 subList="VPMBAUS01 VPMBAUS02 VPMBAUS03 VPMBAUS05 VPMBAUS06 VPMBAUS07 VPMBAUS08 VPMBAUS10 VPMBAUS11 VPMBAUS12 VPMBAUS15 VPMBAUS16 VPMBAUS21 VPMBAUS22 VPMBAUS23"
 taskList="TASK-LOC-1000 TASK-AA-0500 TASK-AA-0750 TASK-AA-1000 TASK-AA-2500 TASK-UA-0500 TASK-UA-0750 TASK-UA-1000 TASK-UA-2500"
 roTimeList=(0.0415863 0.0432825 0.0415863 0.0415863 0.025030 0.0432825 0.0415863 0.0415863 0.025030)
-nThreadsS=6
+nThreadsS=15
 VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT" # data folder
 
 # --------------------------------------------------------------------------------
@@ -111,6 +113,8 @@ epiRoutine(){
         --datain=$WD/acqparams.txt \
         --config=b02b0.cnf \
         --out=${WD}/Coefficents \
+        --iout=${WD}/Magnitudes \
+        --fout=${WD}/TopupField \
         --dfout=${WD}/WarpField \
         --rbmout=${WD}/MotionMatrix \
         --jacout=${WD}/Jacobian -v
@@ -122,6 +126,11 @@ epiRoutine(){
         -interp sinc \
         -init $WD/epi2func.mat \
         -applyxfm -v
+
+    # Calculate Equivalent Field Map (magnitude+phase)
+    fslmaths ${WD}/TopupField -mul 6.283 ${WD}/GREfromTOPUP-PHASE
+    fslmaths ${WD}/Magnitudes -Tmean ${WD}/GREfromTOPUP-MAGNITUDE
+    bet ${WD}/GREfromTOPUP-MAGNITUDE ${WD}/GREfromTOPUP-MAGNITUDE_brain -f 0.4 -m #Brain extract the magnitude image
 
     # --------------------------------------------------------------------------------
     #  One Step Resampling (apply MC+DC)
@@ -223,6 +232,59 @@ epiRoutine(){
 
 }
 
+topupRoutine () {
+
+    # --------------------------------------------------------------------------------
+    #  Settings
+    # --------------------------------------------------------------------------------
+
+    VPDIR=${1}                         # data folder
+    subID=${2}                                           # subject ID
+    taskName=${3}                                    # task name
+    taskDir="${VPDIR}/${subID}/ANALYSIS/${taskName}"            # task directory
+    fmapDir="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-EPI"   # fmap directory
+    WD="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-EPI/work"   # working directory
+    ro_time=${4} # in seconds
+
+    echo ${VPDIR} ${subID} ${taskName} ${roTime}
+
+    # --------------------------------------------------------------------------------
+    #  TOPUP - Distortion Correction (DC)
+    # --------------------------------------------------------------------------------
+
+    # Create topup config file
+    echo "0 -1 0 $ro_time" > $WD/acqparams.txt
+    echo "0 1 0 $ro_time" >> $WD/acqparams.txt
+
+    # Merge EPIs (AP image first)
+    fslmerge -t ${WD}/epiMerge ${WD}/epi-ap.nii.gz ${WD}/epi-pa.nii.gz
+
+    # Topup
+    topup --imain=${WD}/epiMerge \
+        --datain=$WD/acqparams.txt \
+        --config=b02b0.cnf \
+        --out=${WD}/Coefficents \
+        --iout=${WD}/Magnitudes \
+        --fout=${WD}/TopupField \
+        --dfout=${WD}/WarpField \
+        --rbmout=${WD}/MotionMatrix \
+        --jacout=${WD}/Jacobian -v
+
+    # Jacobian to func space
+    flirt -ref $WD/func01.nii.gz \
+        -in $WD/Jacobian_01.nii.gz \
+        -out $WD/Jacobian2func.nii.gz \
+        -interp sinc \
+        -init $WD/epi2func.mat \
+        -applyxfm -v
+
+    # Calculate Equivalent Field Map (magnitude+phase)
+    fslmaths ${WD}/TopupField -mul 6.283 ${WD}/GREfromTOPUP-PHASE
+    fslmaths ${WD}/Magnitudes -Tmean ${WD}/GREfromTOPUP-MAGNITUDE
+    bet ${WD}/GREfromTOPUP-MAGNITUDE ${WD}/GREfromTOPUP-MAGNITUDE_brain -f 0.4 -m #Brain extract the magnitude image
+
+}
+
 # --------------------------------------------------------------------------------
 #  Iteration
 # --------------------------------------------------------------------------------
@@ -248,7 +310,8 @@ do
         roTime=${roTimeList[$roCounter]}
        
         # main function
-        epiRoutine ${VPDIR} ${subID} ${taskName} ${roTime}
+        #epiRoutine ${VPDIR} ${subID} ${taskName} ${roTime}
+        topupRoutine ${VPDIR} ${subID} ${taskName} ${roTime}
 
         # increase counter
         roCounter=$[$roCounter+1]
