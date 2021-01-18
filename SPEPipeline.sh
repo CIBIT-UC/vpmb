@@ -94,6 +94,121 @@ mcflirt -in $WD/func_stc.nii.gz \
         -mats -plots -report
 
 # --------------------------------------------------------------------------------
+#  Gradient Unwarp Correction (GDC)
+# --------------------------------------------------------------------------------
+
+# Define functions
+opts_GetOpt1() {
+    sopt="$1"
+    shift 1
+    for fn in "$@" ; do
+    if [ `echo $fn | grep -- "^${sopt}=" | wc -w` -gt 0 ] ; then
+        echo "$fn" | sed "s/^${sopt}=//"
+        return 0
+    fi
+    done
+}
+
+gradientUnwarp(){
+
+    # Inputs
+    WD=`opts_GetOpt1 "--wd" $@`
+    InputFile=`opts_GetOpt1 "--in" $@`
+    InputCoefficients=`opts_GetOpt1 "--coeff" $@`
+    OutputFile=`opts_GetOpt1 "--out" $@`
+
+    # Basename
+    BaseName=`remove_ext $InputFile`
+    BaseName=`basename $BaseName`
+
+    # Output
+    OutputFile=`${FSLDIR}/bin/remove_ext ${OutputFile}`
+    OutputTransform=${OutputFile}_warp.nii.gz
+    OutputTransformFile=${OutputFile}_warp
+
+    # Extract first volume and run gradient distortion correction on this (all others follow suit as scanner coordinate system is unchanged, even with subject motion)
+    fslroi ${InputFile} $WD/${BaseName}_vol1.nii.gz 0 1
+
+    # move (temporarily) into the working directory as gradient_unwarp.py outputs some files directly into pwd
+    InputCoeffs=`${FSLDIR}/bin/fsl_abspath $InputCoefficients`
+    ORIGDIR=`pwd`
+    cd $WD
+    echo "gradient_unwarp.py ${BaseName}_vol1.nii.gz trilinear.nii.gz siemens -g ${InputCoeffs} -n"
+    # NB: gradient_unwarp.py *must* have the filename extensions written out explicitly or it will crash
+    gradient_unwarp.py ${BaseName}_vol1.nii.gz trilinear.nii.gz siemens -g $InputCoeffs -n
+    cd $ORIGDIR
+
+    # Now create an appropriate warpfield output (relative convention) and apply it to all timepoints
+    #convertwarp's jacobian output has 8 frames, each combination of one-sided differences, so average them
+    ${FSLDIR}/bin/convertwarp \
+        --abs \
+        --ref=$WD/trilinear.nii.gz \
+        --warp1=$WD/fullWarp_abs.nii.gz \
+        --relout \
+        --out=$OutputTransform \
+        --jacobian=${OutputTransformFile}_jacobian
+
+    ${FSLDIR}/bin/fslmaths ${OutputTransformFile}_jacobian -Tmean ${OutputTransformFile}_jacobian
+
+    ${FSLDIR}/bin/applywarp \
+        --rel \
+        --interp=sinc \
+        -i $InputFile \
+        -r $WD/${BaseName}_vol1.nii.gz \
+        -w $OutputTransform \
+        -o $OutputFile
+
+    #QA
+    applywarp --rel --interp=trilinear -i $InputFile -r $WD/${BaseName}_vol1.nii.gz -w $OutputTransform -o $WD/qa_aw_tri
+    fslmaths $WD/qa_aw_tri -sub $WD/trilinear $WD/diff_tri
+    echo `fslstats $WD/diff_tri -a -P 100 -M`
+
+    # Apply Jacobian and replace
+    fslmaths $OutputFile -mul ${OutputTransformFile}_jacobian $OutputFile
+
+    # Make a dilated mask in the distortion corrected space
+    fslmaths $OutputFile -abs -bin -dilD -Tmin ${OutputFile}_mask
+    
+    applywarp \
+        --rel \
+        --interp=sinc \
+        -i ${OutputFile}_mask \
+        -r ${OutputFile}_mask \
+        -w $OutputTransform \
+        -o ${WD}/${BaseName}_mask_gdc
+
+}
+
+# Correct SPE-AP
+gradientUnwarp \
+    --wd=$WD \
+    --in=${WD}/spe-ap.nii.gz \
+    --coeff=/DATAPOOL/VPMB/GradientCoil/coeff.grad \
+    --out=${WD}/spe-ap_gdc
+
+# Correct SPE-PA
+gradientUnwarp \
+    --wd=$WD \
+    --in=${WD}/spe-pa.nii.gz \
+    --coeff=/DATAPOOL/VPMB/GradientCoil/coeff.grad \
+    --out=${WD}/spe-pa_gdc    
+
+# Make a conservative (eroded) intersection of the two masks
+fslmaths ${WD}/spe-ap_mask_gdc -mas ${WD}/spe-pa_mask_gdc -ero -bin ${WD}/speMask
+
+# Merge SPEs (AP image first)
+fslmerge -t ${WD}/speMerge ${WD}/spe-ap_gdc ${WD}/spe-pa_gdc
+
+# Extrapolate the existing values beyond the mask (adding 1 just to avoid smoothing inside the mask)
+${FSLDIR}/bin/fslmaths \
+    ${WD}/speMerge \
+    -abs -add 1 -mas ${WD}/speMask -dilM -dilM -dilM -dilM -dilM \
+    ${WD}/speMerge
+
+# Check
+# fslview_deprecated ${WD}/speMerge ${WD}/speMask &
+
+# --------------------------------------------------------------------------------
 #  TOPUP - Distortion Correction (DC)
 # --------------------------------------------------------------------------------
 
@@ -102,7 +217,17 @@ echo "0 -1 0 $ro_time" > $WD/acqparams.txt
 echo "0 1 0 $ro_time" >> $WD/acqparams.txt
 
 # Merge SPEs (AP image first)
-fslmerge -t ${WD}/speMerge ${WD}/spe-ap.nii.gz ${WD}/spe-pa.nii.gz
+# fslmerge -t ${WD}/speMerge ${WD}/spe-ap.nii.gz ${WD}/spe-pa.nii.gz
+
+# Create mask (Single volume containing all 1's)
+# fslmaths ${WD}/speMerge -mul 0 -add 1 -Tmin ${WD}/speMask
+
+# Extrapolate the existing values beyond the mask (adding 1 just to avoid smoothing inside the mask)
+# ${FSLDIR}/bin/fslmaths ${WD}/speMerge \
+#     -abs -add 1 \
+#     -mas ${WD}/speMask \
+#     -dilM -dilM -dilM -dilM -dilM \
+#     ${WD}/speMerge
 
 # Topup
 topup --imain=${WD}/speMerge \
@@ -127,6 +252,43 @@ flirt -ref $WD/func01.nii.gz \
 fslmaths ${WD}/TopupField -mul 6.283 ${WD}/GREfromTOPUP-PHASE
 fslmaths ${WD}/Magnitudes -Tmean ${WD}/GREfromTOPUP-MAGNITUDE
 bet ${WD}/GREfromTOPUP-MAGNITUDE ${WD}/GREfromTOPUP-MAGNITUDE_brain -f 0.4 -m #Brain extract the magnitude image
+
+# --------------------------------------------------------------------------------
+#  Apply correction to SPE images (QA)
+# --------------------------------------------------------------------------------
+
+# AP
+${FSLDIR}/bin/applywarp \
+    --rel \
+    --interp=sinc \
+    -i ${WD}/spe-ap \
+    -r ${WD}/speMask \
+    --premat=${WD}/MotionMatrix_01.mat \
+    -w ${WD}/WarpField_01 \
+    -o ${WD}/spe-ap_dc
+
+${FSLDIR}/bin/fslmaths \
+    ${WD}/spe-ap_dc \
+    -mul ${WD}/Jacobian_01 \
+    ${WD}/spe-ap_dc_jac
+
+# PA
+${FSLDIR}/bin/applywarp \
+    --rel \
+    --interp=sinc \
+    -i ${WD}/spe-pa \
+    -r ${WD}/speMask \
+    --premat=${WD}/MotionMatrix_02.mat \
+    -w ${WD}/WarpField_02 \
+    -o ${WD}/spe-pa_dc
+
+${FSLDIR}/bin/fslmaths \
+    ${WD}/spe-pa_dc \
+    -mul ${WD}/Jacobian_02 \
+    ${WD}/spe-pa_dc_jac
+
+# check visually
+fslview_deprecated ${WD}/spe-ap_dc_jac ${WD}/spe-pa_dc_jac &
 
 # --------------------------------------------------------------------------------
 #  One Step Resampling (apply MC+DC)
@@ -230,3 +392,28 @@ cp ${WD}/func_stc_mc_dc_brain_restore_jac.nii.gz $fmapDir/filtered_func_data.nii
 
 # To do... :)
 # rm -r $WD
+
+
+
+
+fsleyes $WD/spe-ap.nii.gz $WD/spe-ap_gdc.ni.gz &
+
+gradientUnwarp $WD ${WD}/spe-pa.nii.gz /DATAPOOL/VPMB/GradientCoil/coeff.grad ${WD}/spe-pa_gdc ${WD}/spe-pa_gdc_warp
+
+fsleyes $WD/spe-pa.nii.gz $WD/spe-pa_gdc.nii.gz &
+
+# Make a conservative (eroded) intersection of the two masks
+fslmaths ${WD}/spe-ap_mask_gdc -mas ${WD}/spe-pa_mask_gdc -ero -bin ${WD}/speMask_gdc
+
+# Merge both sets of images
+fslmerge -t ${WD}/speMerge_gdc ${WD}/spe-ap_gdc ${WD}/spe-pa_gdc
+
+# check
+fsleyes ${WD}/speMerge ${WD}/speMerge_gdc &
+
+# Extrapolate the existing values beyond the mask (adding 1 just to avoid smoothing inside the mask)
+${FSLDIR}/bin/fslmaths ${WD}/speMerge_gdc \
+    -abs -add 1 -mas ${WD}/speMask_gdc -dilM -dilM -dilM -dilM -dilM ${WD}/speMerge_gdc2
+
+# check
+fslview_deprecated ${WD}/speMerge ${WD}/speMerge_gdc ${WD}/speMerge_gdc2 &
