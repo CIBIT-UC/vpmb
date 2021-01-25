@@ -217,17 +217,17 @@ echo "0 -1 0 $ro_time" > $WD/acqparams.txt
 echo "0 1 0 $ro_time" >> $WD/acqparams.txt
 
 # Merge SPEs (AP image first)
-# fslmerge -t ${WD}/speMerge ${WD}/spe-ap.nii.gz ${WD}/spe-pa.nii.gz
+fslmerge -t ${WD}/speMerge ${WD}/spe-ap.nii.gz ${WD}/spe-pa.nii.gz
 
 # Create mask (Single volume containing all 1's)
-# fslmaths ${WD}/speMerge -mul 0 -add 1 -Tmin ${WD}/speMask
+fslmaths ${WD}/speMerge -mul 0 -add 1 -Tmin ${WD}/speMask
 
 # Extrapolate the existing values beyond the mask (adding 1 just to avoid smoothing inside the mask)
-# ${FSLDIR}/bin/fslmaths ${WD}/speMerge \
-#     -abs -add 1 \
-#     -mas ${WD}/speMask \
-#     -dilM -dilM -dilM -dilM -dilM \
-#     ${WD}/speMerge
+${FSLDIR}/bin/fslmaths ${WD}/speMerge \
+    -abs -add 1 \
+    -mas ${WD}/speMask \
+    -dilM -dilM -dilM -dilM -dilM \
+    ${WD}/speMerge
 
 # Topup
 topup --imain=${WD}/speMerge \
@@ -252,6 +252,15 @@ flirt -ref $WD/func01.nii.gz \
 fslmaths ${WD}/TopupField -mul 6.283 ${WD}/GREfromTOPUP-PHASE
 fslmaths ${WD}/Magnitudes -Tmean ${WD}/GREfromTOPUP-MAGNITUDE
 bet ${WD}/GREfromTOPUP-MAGNITUDE ${WD}/GREfromTOPUP-MAGNITUDE_brain -f 0.4 -m #Brain extract the magnitude image
+
+# DEBUG test apply topup to compare
+applytopup --imain=$WD/func01.nii.gz \
+    --inindex=1 \
+    --datain=$WD/acqparams.txt \
+    --topup=${WD}/Coefficents \
+    --out=${WD}/ApplyTOPUP \
+    --method=jac \
+    -v
 
 # --------------------------------------------------------------------------------
 #  Apply correction to SPE images (QA)
@@ -376,9 +385,20 @@ fast -b ${WD}/postVols/func_0000_brain.nii.gz
 # Apply BET, bias field, and Jacobian modulation to func
 fslmaths $WD/func_stc_mc_dc.nii.gz \
          -div ${WD}/postVols/func_0000_brain_bias.nii.gz \
-         -mul $WD/Jacobian2func.nii.gz \
+        ${WD}/func_stc_mc_dc_restore.nii.gz
+
+fslmaths $WD/func_stc_mc_dc.nii.gz \
+        -mul $WD/Jacobian2func.nii.gz \
+        ${WD}/func_stc_mc_dc_jac.nii.gz
+
+fslmaths $WD/func_stc_mc_dc.nii.gz \
          -mas ${WD}/postVols/func_0000_mask.nii.gz \
-         ${WD}/func_stc_mc_dc_brain_restore_jac.nii.gz
+         ${WD}/func_stc_mc_dc_brain.nii.gz
+
+fsleyes ${WD}/postVols/func_0000.nii.gz \
+        ${WD}/func_stc_mc_dc_restore.nii.gz \
+        ${WD}/func_stc_mc_dc_jac.nii.gz \
+        ${WD}/func_stc_mc_dc_brain.nii.gz &
 
 # --------------------------------------------------------------------------------
 #  Export
@@ -394,7 +414,7 @@ cp ${WD}/func_stc_mc_dc_brain_restore_jac.nii.gz $fmapDir/filtered_func_data.nii
 # rm -r $WD
 
 
-
+fsleyes $WD/ApplyTOPUP.nii.gz ${WD}/func_stc_mc_dc_brain_restore_jac.nii.gz &
 
 fsleyes $WD/spe-ap.nii.gz $WD/spe-ap_gdc.ni.gz &
 
