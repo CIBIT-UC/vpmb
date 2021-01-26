@@ -9,7 +9,7 @@
 subList="VPMBAUS01 VPMBAUS02 VPMBAUS03 VPMBAUS05 VPMBAUS06 VPMBAUS07 VPMBAUS08 VPMBAUS10 VPMBAUS11 VPMBAUS12 VPMBAUS15 VPMBAUS16 VPMBAUS21 VPMBAUS22 VPMBAUS23"
 taskList="TASK-LOC-1000 TASK-AA-0500 TASK-AA-0750 TASK-AA-1000 TASK-AA-2500 TASK-UA-0500 TASK-UA-0750 TASK-UA-1000 TASK-UA-2500"
 roTimeList=(0.0415863 0.0432825 0.0415863 0.0415863 0.025030 0.0432825 0.0415863 0.0415863 0.025030)
-nThreadsS=15
+nThreadsS=6
 VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT" # data folder
 
 # --------------------------------------------------------------------------------
@@ -117,6 +117,16 @@ speRoutine () {
     # Merge SPEs (AP image first)
     fslmerge -t ${WD}/speMerge ${WD}/spe-ap.nii.gz ${WD}/spe-pa.nii.gz
 
+    # Create mask (Single volume containing all 1's)
+    fslmaths ${WD}/speMerge -mul 0 -add 1 -Tmin ${WD}/speMask
+
+    # Extrapolate the existing values beyond the mask (adding 1 just to avoid smoothing inside the mask)
+    ${FSLDIR}/bin/fslmaths ${WD}/speMerge \
+        -abs -add 1 \
+        -mas ${WD}/speMask \
+        -dilM -dilM -dilM -dilM -dilM \
+        ${WD}/speMerge
+
     # Topup
     topup --imain=${WD}/speMerge \
         --datain=$WD/acqparams.txt \
@@ -137,10 +147,44 @@ speRoutine () {
         -applyxfm -v
 
     # Calculate Equivalent Field Map (magnitude+phase)
-    fslmaths ${WD}/TopupField -mul 6.283 ${WD}/GREfromTOPUP-PHASE
-    fslmaths ${WD}/Magnitudes -Tmean ${WD}/GREfromTOPUP-MAGNITUDE
-    bet ${WD}/GREfromTOPUP-MAGNITUDE ${WD}/GREfromTOPUP-MAGNITUDE_brain -f 0.4 -m #Brain extract the magnitude image
+    fslmaths ${WD}/TopupField -mul 6.283 ${WD}/GREfromTOPUP-Phase
+    fslmaths ${WD}/Magnitudes -Tmean ${WD}/GREfromTOPUP-Magnitude
+    bet ${WD}/GREfromTOPUP-Magnitude ${WD}/GREfromTOPUP-Magnitude_brain -f 0.4 -m #Brain extract the magnitude image
 
+    # --------------------------------------------------------------------------------
+    #  Apply correction to SPE images (QA)
+    # --------------------------------------------------------------------------------
+
+    # AP
+    ${FSLDIR}/bin/applywarp \
+        --rel \
+        --interp=sinc \
+        -i ${WD}/spe-ap \
+        -r ${WD}/speMask \
+        --premat=${WD}/MotionMatrix_01.mat \
+        -w ${WD}/WarpField_01 \
+        -o ${WD}/spe-ap_dc
+
+    ${FSLDIR}/bin/fslmaths \
+        ${WD}/spe-ap_dc \
+        -mul ${WD}/Jacobian_01 \
+        ${WD}/spe-ap_dc_jac
+
+    # PA
+    ${FSLDIR}/bin/applywarp \
+        --rel \
+        --interp=sinc \
+        -i ${WD}/spe-pa \
+        -r ${WD}/speMask \
+        --premat=${WD}/MotionMatrix_02.mat \
+        -w ${WD}/WarpField_02 \
+        -o ${WD}/spe-pa_dc
+
+    ${FSLDIR}/bin/fslmaths \
+        ${WD}/spe-pa_dc \
+        -mul ${WD}/Jacobian_02 \
+        ${WD}/spe-pa_dc_jac
+        
     # --------------------------------------------------------------------------------
     #  One Step Resampling (apply MC+DC)
     # --------------------------------------------------------------------------------
@@ -226,16 +270,28 @@ speRoutine () {
 
     # Apply BET, bias field, and Jacobian modulation to func
     fslmaths $WD/func_stc_mc_dc.nii.gz \
-            -div ${WD}/postVols/func_0000_brain_bias.nii.gz \
             -mul $WD/Jacobian2func.nii.gz \
             -mas ${WD}/postVols/func_0000_mask.nii.gz \
-            ${WD}/func_stc_mc_dc_brain_restore_jac.nii.gz
+            -div ${WD}/postVols/func_0000_brain_bias.nii.gz \
+            ${WD}/func_stc_mc_dc_jac_brain_restore.nii.gz
+
+    # --------------------------------------------------------------------------------
+    #  Register corrected func to T1w
+    # --------------------------------------------------------------------------------
+
+    # Create func01_processed (first volume of corrected functional data)
+    fslroi ${WD}/func_stc_mc_dc_jac_brain_restore.nii.gz $WD/func01_processed.nii.gz 0 1
+
+    epi_reg --epi=$WD/func01_processed.nii.gz \
+            --t1=$VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W.nii.gz \
+            --t1brain=$VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W_brain.nii.gz \
+            --out=$WD/func2struct -v
 
     # --------------------------------------------------------------------------------
     #  Export
     # --------------------------------------------------------------------------------
 
-    cp ${WD}/func_stc_mc_dc_brain_restore_jac.nii.gz $fmapDir/filtered_func_data.nii.gz
+    cp ${WD}/func_stc_mc_dc_jac_brain_restore.nii.gz $fmapDir/filtered_func_data.nii.gz
 
 }
 
@@ -317,8 +373,8 @@ do
         roTime=${roTimeList[$roCounter]}
        
         # main function
-        #speRoutine ${VPDIR} ${subID} ${taskName} ${roTime}
-        topupRoutine ${VPDIR} ${subID} ${taskName} ${roTime}
+        speRoutine ${VPDIR} ${subID} ${taskName} ${roTime}
+        #topupRoutine ${VPDIR} ${subID} ${taskName} ${roTime}
 
         # increase counter
         roCounter=$[$roCounter+1]
