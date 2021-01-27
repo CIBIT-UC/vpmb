@@ -282,6 +282,7 @@ speRoutine () {
     # Create func01_processed (first volume of corrected functional data)
     fslroi ${WD}/func_stc_mc_dc_jac_brain_restore.nii.gz $WD/func01_processed.nii.gz 0 1
 
+    # Estimate registration
     epi_reg --epi=$WD/func01_processed.nii.gz \
             --t1=$VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W.nii.gz \
             --t1brain=$VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W_brain.nii.gz \

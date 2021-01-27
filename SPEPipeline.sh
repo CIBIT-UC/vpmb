@@ -19,6 +19,8 @@ WD="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-SPE/work"   # working directory
 ro_time=0.0415863 # in seconds
 nThreads=36 # number of threads
 
+startTime=`date "+%s"`
+
 # --------------------------------------------------------------------------------
 #  Create/Clean folder
 # --------------------------------------------------------------------------------
@@ -278,6 +280,7 @@ cp ${WD}/func_stc_mc_dc_jac_brain_restore.nii.gz $fmapDir/filtered_func_data.nii
 # Create func01_processed (first volume of corrected functional data)
 fslroi ${WD}/func_stc_mc_dc_jac_brain_restore.nii.gz $WD/func01_processed.nii.gz 0 1
 
+# Estimate registration
 epi_reg --epi=$WD/func01_processed.nii.gz \
         --t1=$VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W.nii.gz \
         --t1brain=$VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W_brain.nii.gz \
@@ -287,7 +290,10 @@ epi_reg --epi=$WD/func01_processed.nii.gz \
 fsleyes $VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W.nii.gz ${WD}/func2struct.nii.gz &
 
 # --------------------------------------------------------------------------------
-#  Clean up
+#  Elapsed time
 # --------------------------------------------------------------------------------
 
-# To do... :)
+endTime="`date "+%s"`"
+elapsedTime=$(($endTime - $startTime))
+((sec=elapsedTime%60, elapsedTime/=60, min=elapsedTime%60, hrs=elapsedTime/60))
+echo "---> ELAPSED TIME $(printf "%d:%02d:%02d" $hrs $min $sec)"
