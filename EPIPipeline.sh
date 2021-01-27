@@ -52,18 +52,6 @@ fslroi $WD/epi-pa.nii.gz $WD/epi-pa.nii.gz 9 1
 fslroi $WD/func.nii.gz $WD/func01.nii.gz 0 1
 
 # --------------------------------------------------------------------------------
-#  Align epi-ap and epi-pa
-# --------------------------------------------------------------------------------
-
-# flirt -ref $WD/epi-ap.nii.gz \
-#       -in $WD/epi-pa.nii.gz \
-#       -out $WD/epi-pa.nii.gz \
-#       -omat $WD/epi-pa2epi.mat \
-#       -cost normmi \
-#       -interp sinc \
-#       -dof 6 -v
-
-# --------------------------------------------------------------------------------
 #  Calculate func2epi and epi2func transformation matrices
 # --------------------------------------------------------------------------------
 
@@ -108,6 +96,9 @@ echo "0 1 0 $ro_time" >> $WD/acqparams.txt
 # Merge EPIs (AP image first)
 fslmerge -t ${WD}/epiMerge ${WD}/epi-ap.nii.gz ${WD}/epi-pa.nii.gz
 
+# Create mask (Single volume containing all 1's)
+fslmaths ${WD}/epiMerge -mul 0 -add 1 -Tmin ${WD}/epiMask
+
 # Topup
 topup --imain=${WD}/epiMerge \
       --datain=$WD/acqparams.txt \
@@ -128,9 +119,46 @@ flirt -ref $WD/func01.nii.gz \
       -applyxfm -v
 
 # Calculate Equivalent Field Map (magnitude+phase)
-fslmaths ${WD}/TopupField -mul 6.283 ${WD}/GREfromTOPUP-PHASE
-fslmaths ${WD}/Magnitudes -Tmean ${WD}/GREfromTOPUP-MAGNITUDE
-bet ${WD}/GREfromTOPUP-MAGNITUDE ${WD}/GREfromTOPUP-MAGNITUDE_brain -f 0.4 -m #Brain extract the magnitude image
+fslmaths ${WD}/TopupField -mul 6.283 ${WD}/GREfromTOPUP-Phase
+fslmaths ${WD}/Magnitudes -Tmean ${WD}/GREfromTOPUP-Magnitude
+bet ${WD}/GREfromTOPUP-Magnitude ${WD}/GREfromTOPUP-Magnitude_brain -f 0.4 -m #Brain extract the magnitude image
+
+# --------------------------------------------------------------------------------
+#  Apply correction to EPI images (QA)
+# --------------------------------------------------------------------------------
+
+# AP
+${FSLDIR}/bin/applywarp \
+    --rel \
+    --interp=sinc \
+    -i ${WD}/epi-ap \
+    -r ${WD}/epiMask \
+    --premat=${WD}/MotionMatrix_01.mat \
+    -w ${WD}/WarpField_01 \
+    -o ${WD}/epi-ap_dc
+
+${FSLDIR}/bin/fslmaths \
+    ${WD}/epi-ap_dc \
+    -mul ${WD}/Jacobian_01 \
+    ${WD}/epi-ap_dc_jac
+
+# PA
+${FSLDIR}/bin/applywarp \
+    --rel \
+    --interp=sinc \
+    -i ${WD}/epi-pa \
+    -r ${WD}/epiMask \
+    --premat=${WD}/MotionMatrix_02.mat \
+    -w ${WD}/WarpField_02 \
+    -o ${WD}/epi-pa_dc
+
+${FSLDIR}/bin/fslmaths \
+    ${WD}/epi-pa_dc \
+    -mul ${WD}/Jacobian_02 \
+    ${WD}/epi-pa_dc_jac
+
+# check visually
+fsleyes $WD/Magnitudes ${WD}/epi-ap_dc_jac ${WD}/epi-pa_dc_jac &
 
 # --------------------------------------------------------------------------------
 #  One Step Resampling (apply MC+DC)
@@ -217,16 +245,32 @@ fast -b ${WD}/postVols/func_0000_brain.nii.gz
 
 # Apply BET, bias field, and Jacobian modulation to func
 fslmaths $WD/func_stc_mc_dc.nii.gz \
-         -div ${WD}/postVols/func_0000_brain_bias.nii.gz \
-         -mul $WD/Jacobian2func.nii.gz \
-         -mas ${WD}/postVols/func_0000_mask.nii.gz \
-         ${WD}/func_stc_mc_dc_brain_restore_jac.nii.gz
+        -mul $WD/Jacobian2func.nii.gz \
+        -mas ${WD}/postVols/func_0000_mask.nii.gz \
+        -div ${WD}/postVols/func_0000_brain_bias.nii.gz \
+        ${WD}/func_stc_mc_dc_jac_brain_restore.nii.gz
 
 # --------------------------------------------------------------------------------
 #  Export
 # --------------------------------------------------------------------------------
 
-cp ${WD}/func_stc_mc_dc_brain_restore_jac.nii.gz $fmapDir/filtered_func_data.nii.gz
+cp ${WD}/func_stc_mc_dc_jac_brain_restore.nii.gz $fmapDir/filtered_func_data.nii.gz
+
+# --------------------------------------------------------------------------------
+#  Register corrected func to T1w
+# --------------------------------------------------------------------------------
+
+# Create func01_processed (first volume of corrected functional data)
+fslroi ${WD}/func_stc_mc_dc_jac_brain_restore.nii.gz $WD/func01_processed.nii.gz 0 1
+
+# Estimate registration
+epi_reg --epi=$WD/func01_processed.nii.gz \
+        --t1=$VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W.nii.gz \
+        --t1brain=$VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W_brain.nii.gz \
+        --out=$WD/func2struct -v
+
+# Check visually
+fsleyes $VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W.nii.gz ${WD}/func2struct.nii.gz &
 
 # --------------------------------------------------------------------------------
 #  Elapsed time
@@ -236,5 +280,3 @@ endTime="`date "+%s"`"
 elapsedTime=$(($endTime - $startTime))
 ((sec=elapsedTime%60, elapsedTime/=60, min=elapsedTime%60, hrs=elapsedTime/60))
 echo "---> ELAPSED TIME $(printf "%d:%02d:%02d" $hrs $min $sec)"
-
-fslview_deprecated /DATAPOOL/VPMB/VPMB-STCIBIT/VPMBAUS03/ANALYSIS/TASK-LOC-1000/FMAP-EPI/filtered_func_data.nii.gz /DATAPOOL/VPMB/VPMB-STCIBIT/VPMBAUS03/ANALYSIS/TASK-LOC-1000/FMAP-SPE/filtered_func_data.nii.gz /DATAPOOL/VPMB/VPMB-STCIBIT/VPMBAUS03/ANALYSIS/TASK-LOC-1000/FMAP-GRE/prestats+dc.feat/filtered_func_data.nii.gz &
