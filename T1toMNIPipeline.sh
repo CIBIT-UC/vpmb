@@ -15,9 +15,10 @@ subID="VPMBAUS03"                            # subject ID
 betDir="${VPDIR}/${subID}/ANALYSIS/T1W/BET"    # structural directory
 fastDir="${VPDIR}/${subID}/ANALYSIS/T1W/FAST"    # FAST directory
 WD="${VPDIR}/${subID}/ANALYSIS/T1W/MNI"      # working directory
+mniImage=$FSLDIR/data/standard/MNI152_T1_2mm
 
 # --------------------------------------------------------------------------------
-#  Create/Clean folders
+#  Create/Clean folder
 # --------------------------------------------------------------------------------
 
 if [ ! -e $WD ] ; then # not exists
@@ -45,30 +46,31 @@ else
     echo "--> FAST folder ready."
 fi
 
-# execute
-fast -b -v -o ${fastDir}/${subID}_T1W_brain ${betDir}/${subID}_T1W_brain.nii.gz
-#mv ${fastDir}/${subID}_T1W_bias
+# BET (cannot use the existing _brain because its restored)
+cp $betDir/${subID}_T1W.nii.gz $fastDir/${subID}_T1W.nii.gz # copy file
 
-# apply
-fslmaths ${betDir}/${subID}_T1W_brain.nii.gz \
-        -div ${fastDir}/${subID}_T1W_brain_bias.nii.gz \
-        ${fastDir}/${subID}_T1W_brain_restore.nii.gz
+fslmaths $fastDir/${subID}_T1W -mas $betDir/${subID}_T1W_brain_mask $fastDir/${subID}_T1W_brain    # apply  brain mask
+
+#fslview_deprecated $fastDir/${subID}_T1W $fastDir/${subID}_T1W_brain &
+
+# execute
+fast -b -B -v -o ${fastDir}/${subID}_T1W_brain ${fastDir}/${subID}_T1W_brain.nii.gz
 
 # apply also to non-bet image
-fslmaths ${betDir}/${subID}_T1W.nii.gz \
+fslmaths ${fastDir}/${subID}_T1W.nii.gz \
         -div ${fastDir}/${subID}_T1W_brain_bias.nii.gz \
         ${fastDir}/${subID}_T1W_restore.nii.gz
 
 # check
-fslview_deprecated ${fastDir}/${subID}_T1W_restore -b 0,500 \
-    ${fastDir}/${subID}_T1W_brain_restore -b 0,500 &
+# fslview_deprecated ${fastDir}/${subID}_T1W_restore.nii.gz -b 0,500 \
+#     ${fastDir}/${subID}_T1W_brain_restore.nii.gz -b 0,500 &
 
 # --------------------------------------------------------------------------------
 #  Registration to MNI
 # --------------------------------------------------------------------------------
 
 # Initial linear registration
-flirt -ref ${FSLDIR}/data/standard/MNI152_T1_2mm_brain \
+flirt -ref ${mniImage}_brain \
         -in ${fastDir}/${subID}_T1W_brain_restore \
         -omat $WD/struct2mni_affine.mat \
         -dof 12 -v
@@ -79,23 +81,12 @@ fnirt --in=${fastDir}/${subID}_T1W_restore \
         --aff=$WD/struct2mni_affine.mat \
         --cout=$WD/struct2mni -v
 
-# fnirt --in=${betDir}/${subID}_T1W \
-#         --aff=$WD/struct2mni_affine.mat \
-#         --cout=$WD/struct2mniop2 \
-#         --ref=$FSLDIR/data/standard/MNI152_T1_2mm \
-#         --refmask=$FSLDIR/data/standard/MNI152_T1_2mm_brain_mask -v \
-#         --warpres=10,10,10 -v
-
 # Apply
-applywarp --ref=${FSLDIR}/data/standard/MNI152_T1_2mm \
+applywarp --ref=${mniImage} \
     --in=${fastDir}/${subID}_T1W_restore \
     --warp=$WD/struct2mni \
     --out=${WD}/${subID}_T1W_MNI \
     --interp=sinc
 
-# applywarp --ref=${FSLDIR}/data/standard/MNI152_T1_2mm \
-#     --in=${betDir}/${subID}_T1W \
-#     --warp=$WD/struct2mniop2 \
-#     --out=${WD}/${subID}_T1W_MNIop2    
-
-fslview_deprecated ${FSLDIR}/data/standard/MNI152_T1_2mm ${WD}/${subID}_T1W_MNI &
+# Check visually
+# fslview_deprecated ${mniImage} ${WD}/${subID}_T1W_MNI &
