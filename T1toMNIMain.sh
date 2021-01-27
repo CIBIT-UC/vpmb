@@ -82,6 +82,7 @@ t1tomniRoutine () {
     # Initial linear registration
     flirt -ref ${mniImage}_brain \
             -in ${fastDir}/${subID}_T1W_brain_restore \
+            -out ${WD}/${subID}_T1W_MNI_brain_affine \
             -omat $WD/struct2mni_affine.mat \
             -dof 12 -v
 
@@ -89,6 +90,7 @@ t1tomniRoutine () {
     fnirt --in=${fastDir}/${subID}_T1W_restore \
             --config=T1_2_MNI152_2mm \
             --aff=$WD/struct2mni_affine.mat \
+            --warpres=6,6,6 \
             --cout=$WD/struct2mni -v
 
     # Apply

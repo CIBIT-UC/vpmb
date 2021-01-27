@@ -72,6 +72,7 @@ fslmaths ${fastDir}/${subID}_T1W.nii.gz \
 # Initial linear registration
 flirt -ref ${mniImage}_brain \
         -in ${fastDir}/${subID}_T1W_brain_restore \
+        -out ${WD}/${subID}_T1W_MNI_brain_affine \
         -omat $WD/struct2mni_affine.mat \
         -dof 12 -v
 
@@ -79,6 +80,7 @@ flirt -ref ${mniImage}_brain \
 fnirt --in=${fastDir}/${subID}_T1W_restore \
         --config=T1_2_MNI152_2mm \
         --aff=$WD/struct2mni_affine.mat \
+        --warpres=6,6,6 \
         --cout=$WD/struct2mni -v
 
 # Apply
@@ -89,4 +91,4 @@ applywarp --ref=${mniImage} \
     --interp=sinc
 
 # Check visually
-# fslview_deprecated ${mniImage} ${WD}/${subID}_T1W_MNI &
+fslview_deprecated ${mniImage} ${WD}/${subID}_T1W_MNI_affine ${WD}/${subID}_T1W_MNI &
