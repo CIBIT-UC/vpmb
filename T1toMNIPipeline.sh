@@ -56,7 +56,7 @@ cp $betDir/${subID}_T1W.nii.gz $fastDir/${subID}_T1W.nii.gz
 fslmaths $fastDir/${subID}_T1W -mas $betDir/${subID}_T1W_brain_mask $fastDir/${subID}_T1W_brain
 
 # check
-# fslview_deprecated $fastDir/${subID}_T1W $fastDir/${subID}_T1W_brain &
+fslview_deprecated $fastDir/${subID}_T1W $fastDir/${subID}_T1W_brain &
 
 # --------------------------------------------------------------------------------
 #  Bias field correction
@@ -77,8 +77,7 @@ fslmaths ${fastDir}/${subID}_T1W.nii.gz \
         ${fastDir}/${subID}_T1W_restore.nii.gz
 
 # check
-# fslview_deprecated ${fastDir}/${subID}_T1W_restore.nii.gz -b 0,500 \
-#     ${fastDir}/${subID}_T1W_brain_restore.nii.gz -b 0,500 &
+fslview_deprecated ${fastDir}/${subID}_T1W_restore.nii.gz -b 0,500 ${fastDir}/${subID}_T1W_brain_restore.nii.gz -b 0,500 &
 
 # --------------------------------------------------------------------------------
 #  Registration to MNI using ANTs
@@ -94,7 +93,8 @@ antsRegistrationSyN.sh \
 
 # Rename final images
 mv ${mniDir}/antsOut_Warped.nii.gz ${mniDir}/${subID}_T1W_MNI.nii.gz
-mv ${mniDir}/antsOut_1Warp.nii.gz ${mniDir}/struct2mni.nii.gz
+mv ${mniDir}/antsOut_0GenericAffine.mat ${mniDir}/struct2mni_affine.mat
+mv ${mniDir}/antsOut_1Warp.nii.gz ${mniDir}/struct2mni_warp.nii.gz
 
 # check
-# fslview_deprecated $mniImage ${mniDir}/${subID}_T1W_MNI.nii.gz &
+fslview_deprecated $mniImage ${mniDir}/${subID}_T1W_MNI.nii.gz &

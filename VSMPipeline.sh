@@ -3,33 +3,32 @@
 # Pipeline for single subject/run evaluation of DC with Voxel shift maps (VSM)
 
 # Requirements for this script
-#  installed versions of: FSL
+#  installed versions of: FSL, Convert3D, ANTs
 #  environment: FSLDIR
 
 # --------------------------------------------------------------------------------
 #  Settings
 # --------------------------------------------------------------------------------
 
-VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT"                         # data folder
-subID="VPMBAUS03"                                           # subject ID
-taskName="TASK-LOC-1000"                                    # task name
-taskDir="${VPDIR}/${subID}/ANALYSIS/${taskName}"            # task directory
-fmapDir="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-SPE"   # fmap directory
-t1Dir="${VPDIR}/${subID}/ANALYSIS/T1W"                      # T1w directory
-WD="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-SPE/vsm"    # working directory
-ro_time=0.0415863 # in seconds
-#nThreads=36 # number of threads
-mniImage=$FSLDIR/data/standard/MNI152_T1_2mm
+VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT"                          # data folder
+subID="VPMBAUS03"                                            # subject ID
+taskName="TASK-LOC-1000"                                     # task name
+taskDir="${VPDIR}/${subID}/ANALYSIS/${taskName}"             # task directory
+fmapDir="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-SPE"    # fmap directory
+t1Dir="${VPDIR}/${subID}/ANALYSIS/T1W"                       # T1w directory
+vsmDir="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-SPE/vsm" # working directory
+ro_time=0.0415863                                            # in seconds
+mniImage=$FSLDIR/data/standard/MNI152_T1_1mm                 # MNI template
 
 # --------------------------------------------------------------------------------
 #  Create/Clean folder
 # --------------------------------------------------------------------------------
 
-if [ ! -e $WD ] ; then # not exists
-    mkdir -p $WD
+if [ ! -e $vsmDir ] ; then # not exists
+    mkdir -p $vsmDir
     echo "--> FMAP-SPE/vsm folder created."
-elif [ "$(ls -A ${WD})" ] ; then # not empty
-    rm -r ${WD}/*
+elif [ "$(ls -A ${vsmDir})" ] ; then # not empty
+    rm -r ${vsmDir}/*
     echo "--> FMAP-SPE/vsm folder cleared."
 else
     echo "--> FMAP-SPE/vsm folder ready."
@@ -39,130 +38,98 @@ fi
 #  Copy files
 # --------------------------------------------------------------------------------
 
-cp $fmapDir/work/TopupField.nii.gz $WD/fieldmap.nii.gz
-cp $fmapDir/work/spe-ap_dc_jac.nii.gz $WD/speReference.nii.gz
+cp $fmapDir/work/TopupField.nii.gz $vsmDir/fieldmap.nii.gz # output field of topup
+cp $fmapDir/work/spe-ap_dc_jac.nii.gz $vsmDir/speReference.nii.gz # distortion corrected SPE AP image
 
 # --------------------------------------------------------------------------------
 #  Calculate VSM
 # --------------------------------------------------------------------------------
-# insert formula here
+# Formula: VSM = topup field (Hz) * readout time (s) = topup field (Hz) / readout time (Hz)
+# Output VSM is in number of voxels
 
-fslmaths ${WD}/fieldmap \
+fslmaths ${vsmDir}/fieldmap \
     -mul $ro_time \
-    $WD/fieldmap_vsm
+    $vsmDir/fieldmap_vsm
 
 # check visually
-fsleyes $WD/fieldmap_vsm -dr -10 10 -cm brain_colours_diverging_bwr_iso &
+fsleyes $vsmDir/fieldmap_vsm -dr -10 10 -cm brain_colours_diverging_bwr_iso &
 
 # --------------------------------------------------------------------------------
-#  Estimate spe2mni
+#  Brain extract speReference
 # --------------------------------------------------------------------------------
 
-# BET speReference
-bet2 $WD/speReference.nii.gz $WD/speReferenceMask -f 0.4 -n -m   # calculate spe-ap brain mask
-mv $WD/speReferenceMask_mask.nii.gz $WD/speReference_brain_mask.nii.gz  # rename spe brain mask
-fslmaths $WD/speReference.nii.gz -mas $WD/speReference_brain_mask.nii.gz $WD/speReference_brain.nii.gz  # apply spe brain mask
+bet2 $vsmDir/speReference.nii.gz $vsmDir/speReferenceMask -f 0.4 -n -m   # calculate spe-ap brain mask
+mv $vsmDir/speReferenceMask_mask.nii.gz $vsmDir/speReference_brain_mask.nii.gz  # rename spe brain mask
+fslmaths $vsmDir/speReference.nii.gz -mas $vsmDir/speReference_brain_mask.nii.gz $vsmDir/speReference_brain.nii.gz  # apply spe brain mask
 
 # check visually
-fslview_deprecated $WD/speReference.nii.gz $WD/speReference_brain.nii.gz &
+fslview_deprecated $vsmDir/speReference.nii.gz $vsmDir/speReference_brain.nii.gz &
 
-# Bias field
-fast -B $WD/speReference_brain.nii.gz    # output: speReference_brain_restore
+# --------------------------------------------------------------------------------
+#  Bias field correction speReference
+# --------------------------------------------------------------------------------
 
-fslmaths ${t1Dir}/FAST/${subID}_T1W_brain_seg.nii.gz \
-    -thr 2.9 -bin \
-    ${t1Dir}/FAST/${subID}_T1W_brain_wmseg.nii.gz
+fast -B -v $vsmDir/speReference_brain.nii.gz    # output: speReference_brain_restore
 
-# Estimate register from spe to struct (CHANGE TO EPI_REG)
-epi_reg --epi=$WD/speReference_brain_restore \
+# --------------------------------------------------------------------------------
+#  Estimate spe2struct using epi_reg
+# --------------------------------------------------------------------------------
+# Output matrix: spe2struct.mat
+
+epi_reg \
+    --epi=$vsmDir/speReference_brain_restore \
     --t1=${t1Dir}/FAST/${subID}_T1W_restore \
     --t1brain=${t1Dir}/FAST/${subID}_T1W_brain_restore \
     --wmseg=${t1Dir}/FAST/${subID}_T1W_brain_wmseg \
-    --out=$WD/speReference_brain_restore2struct &
-
-fslview_deprecated ${t1Dir}/FAST/${subID}_T1W_restore $WD/speReference_brain_restore2struct &
-
-# output speReference_brain_restore2struct.mat
-
-# flirt -ref ${t1Dir}/FAST/${subID}_T1W_brain_restore \
-#     -in $WD/speReference_brain_restore \
-#     -omat $WD/spe2struct \
-#     -out $WD/spe2struct \
-#     -cost normmi \
-#     -interp sinc \
-#     -dof 6 -v
+    --out=$vsmDir/spe2struct
 
 # check visually
-fslview_deprecated ${t1Dir}/FAST/${subID}_T1W_brain_restore.nii.gz $WD/spe2struct.nii.gz &
+fslview_deprecated ${t1Dir}/FAST/${subID}_T1W_brain_restore.nii.gz $vsmDir/spe2struct.nii.gz &
 
-# Concatenate spe2struct and struct2mni_affine
-convert_xfm -omat $WD/spe2mni_affine \
-            -concat ${t1Dir}/MNI/struct2mni_affine.mat $WD/spe2struct
+# Convert .mat to ANTs format
+c3d_affine_tool \
+    -ref ${t1Dir}/FAST/${subID}_T1W_restore \
+    -src $vsmDir/speReference_brain_restore \
+    $vsmDir/spe2struct.mat -fsl2ras -oitk $vsmDir/spe2struct_ANTS.txt
 
-# Apply spe2mni_affine
-flirt -ref $mniImage \
-    -in $WD/speReference \
-    -init $WD/spe2mni_affine \
-    -applyxfm \
-    -out $WD/speReference_MNI_affine \
-    -interp sinc -v
+# --------------------------------------------------------------------------------
+#  SPE to MNI using ANTs
+# --------------------------------------------------------------------------------
+
+antsApplyTransforms -d 3 \
+    -i $vsmDir/speReference.nii.gz \
+    -r $mniImage.nii.gz \
+    -n HammingWindowedSinc \
+    -t ${t1Dir}/MNI/struct2mni_warp.nii.gz \
+    -t ${t1Dir}/MNI/struct2mni_affine.mat \
+    -t $vsmDir/spe2struct_ANTS.txt \
+    -o $vsmDir/speReference_MNI.nii.gz -v
 
 # check
-fslview_deprecated $mniImage $WD/speReference_MNI_affine &
+fslview_deprecated $mniImage $vsmDir/speReference_MNI.nii.gz &
 
 # --------------------------------------------------------------------------------
-#  VSM to MNI (Affine)
+#  VSM to MNI using ANTs
 # --------------------------------------------------------------------------------
+# Nearest Neighbor interpolation (do not allow voxel value change)
 
-#fslmaths $WD/fieldmap_vsm -mas $WD/speReference_brain_mask.nii.gz $WD/fieldmap_vsm_brain  # apply spe brain mask
-
-# Apply spe2mni_affine
-flirt -ref $mniImage \
-    -in $WD/fieldmap_vsm \
-    -init $WD/spe2mni_affine \
-    -applyxfm \
-    -out $WD/fieldmap_vsm_MNI_affine \
-    -interp sinc -v
-
-# Apply Brain mask
-fslmaths $WD/fieldmap_vsm_MNI_affine -mas ${mniImage}_brain_mask $WD/fieldmap_vsm_brain_MNI_affine
-
-# Check visually
-fsleyes ${mniImage} $WD/fieldmap_vsm_brain_MNI_affine -dr -30000 30000 -cm brain_colours_diverging_bwr_iso &
-
-# --------------------------------------------------------------------------------
-#  VSM to MNI (Non-linear)
-# --------------------------------------------------------------------------------
-
-# concatenate transformations spe2struct (linear) with struct2mni (nonlinear)
-convertwarp --ref=$mniImage \
-        --out=$WD/spe2mni \
-        --premat=$WD/spe2struct \
-        --warp1=${t1Dir}/MNI/struct2mni \
-        --rel --verbose
-
-# Apply spe2mni to speReference
-applywarp --ref=$mniImage \
-    --in=$WD/speReference \
-    --warp=$WD/spe2mni \
-    --out=$WD/speReference_MNI \
-    --interp=sinc
-
-# Check visually
-fslview_deprecated $mniImage ${t1Dir}/MNI/${subID}_T1W_MNI $WD/speReference_MNI &
-
-# Apply spe2mni to VSM
-applywarp --ref=$mniImage \
-    --in=$WD/fieldmap_vsm \
-    --warp=$WD/spe2mni \
-    --out=$WD/fieldmap_vsm_MNI \
-    --interp=nn
+antsApplyTransforms -d 3 \
+    -i $vsmDir/fieldmap_vsm.nii.gz \
+    -r $mniImage.nii.gz \
+    -n NearestNeighbor \
+    -t ${t1Dir}/MNI/struct2mni_warp.nii.gz \
+    -t ${t1Dir}/MNI/struct2mni_affine.mat \
+    -t $vsmDir/spe2struct_ANTS.txt \
+    -o $vsmDir/fieldmap_vsm_MNI.nii.gz -v
 
 # Apply brain mask
-fslmaths $WD/fieldmap_vsm_MNI -mas ${mniImage}_brain_mask $WD/fieldmap_vsm_brain_MNI
+fslmaths $vsmDir/fieldmap_vsm_MNI -mas ${mniImage}_brain_mask $vsmDir/fieldmap_vsm_brain_MNI
 
 # Check visually
-fsleyes ${mniImage} $WD/fieldmap_vsm_brain_MNI -dr -30000 30000 -cm brain_colours_diverging_bwr_iso &
+fsleyes ${mniImage} $vsmDir/fieldmap_vsm_brain_MNI -dr -10 10 -cm brain_colours_diverging_bwr_iso &
 
-# DEBUG
-fsleyes ${mniImage} $WD/fieldmap_vsm_brain_MNI_affine -dr -30000 30000 -cm brain_colours_diverging_bwr_iso $WD/fieldmap_vsm_brain_MNI -dr -30000 30000 -cm brain_colours_diverging_bwr_iso &
+# --------------------------------------------------------------------------------
+#  Interesting values
+# --------------------------------------------------------------------------------
+
+
