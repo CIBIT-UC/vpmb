@@ -3,7 +3,7 @@
 # Pipeline for estimating T1 to MNI transformation for all subjects
 
 # Requirements for this script
-#  installed versions of: FSL
+#  installed versions of: FSL, ANTS
 #  environment: FSLDIR
 
 # screen -L -Logfile t1tomniMain-logfile.txt -S t1tomni
@@ -13,7 +13,7 @@
 # --------------------------------------------------------------------------------
 
 subList="VPMBAUS01 VPMBAUS02 VPMBAUS03 VPMBAUS05 VPMBAUS06 VPMBAUS07 VPMBAUS08 VPMBAUS10 VPMBAUS11 VPMBAUS12 VPMBAUS15 VPMBAUS16 VPMBAUS21 VPMBAUS22 VPMBAUS23"
-nThreadsS=15
+nThreadsS=4 # subjects in parallel. take into account the nThreads variable inside the t1tomniRoutine
 VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT" # data folder
 
 # --------------------------------------------------------------------------------
@@ -26,32 +26,30 @@ t1tomniRoutine () {
     #  Settings
     # --------------------------------------------------------------------------------
 
-    VPDIR=${1}                                      # data folder
-    subID=${2}                                      # subject ID
-    betDir="${VPDIR}/${subID}/ANALYSIS/T1W/BET"     # structural directory
-    fastDir="${VPDIR}/${subID}/ANALYSIS/T1W/FAST"   # FAST directory
-    WD="${VPDIR}/${subID}/ANALYSIS/T1W/MNI"         # working directory
-    mniImage=$FSLDIR/data/standard/MNI152_T1_2mm    # MNI template
+    VPDIR=${1}                                    # data folder
+    subID=${2}                                    # subject ID
+    betDir="${VPDIR}/${subID}/ANALYSIS/T1W/BET"   # structural directory
+    fastDir="${VPDIR}/${subID}/ANALYSIS/T1W/FAST" # FAST directory
+    mniDir="${VPDIR}/${subID}/ANALYSIS/T1W/MNI"   # working directory
+    mniImage=$FSLDIR/data/standard/MNI152_T1_1mm  # MNI template
+    nThreads=10                                   # Number of threads for ANTs (overides $ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS)
 
     # --------------------------------------------------------------------------------
-    #  Create/Clean folder
+    #  Create/Clean fast and mni folders
     # --------------------------------------------------------------------------------
 
-    if [ ! -e $WD ] ; then # not exists
-        mkdir -p $WD
+    # mniDir
+    if [ ! -e $mniDir ] ; then # not exists
+        mkdir -p $mniDir
         echo "--> MNI folder created."
-    elif [ "$(ls -A ${WD})" ] ; then # not empty
-        rm -r ${WD}/*
+    elif [ "$(ls -A ${mniDir})" ] ; then # not empty
+        rm -r ${mniDir}/*
         echo "--> MNI folder cleared."
     else
         echo "--> MNI folder ready."
     fi
 
-    # --------------------------------------------------------------------------------
-    #  Bias field correction
-    # --------------------------------------------------------------------------------
-
-    # create/clear folder
+    # fastDir
     if [ ! -e $fastDir ] ; then # not exists
         mkdir -p $fastDir
         echo "--> FAST folder created."
@@ -62,43 +60,52 @@ t1tomniRoutine () {
         echo "--> FAST folder ready."
     fi
 
-    # BET (cannot use the existing _brain because its restored)
-    cp $betDir/${subID}_T1W.nii.gz $fastDir/${subID}_T1W.nii.gz # copy file
+    # --------------------------------------------------------------------------------
+    #  BET T1W
+    # --------------------------------------------------------------------------------
+    # (cannot use the output from ANTs because it is already restored)
 
-    fslmaths $fastDir/${subID}_T1W -mas $betDir/${subID}_T1W_brain_mask $fastDir/${subID}_T1W_brain    # apply  brain mask
+    # Copy file
+    cp $betDir/${subID}_T1W.nii.gz $fastDir/${subID}_T1W.nii.gz 
 
-    # execute
-    fast -b -B -v -o ${fastDir}/${subID}_T1W_brain ${fastDir}/${subID}_T1W_brain.nii.gz
+    # Apply  brain mask
+    fslmaths $fastDir/${subID}_T1W -mas $betDir/${subID}_T1W_brain_mask $fastDir/${subID}_T1W_brain
 
-    # apply also to non-bet image
+    # --------------------------------------------------------------------------------
+    #  Bias field correction
+    # --------------------------------------------------------------------------------
+
+    (
+    # Execute FAST
+    # will export bias-corrected image (-B) and binary images for the three tissue types (segmentation, -g)
+    fast -b -B -v -g -o ${fastDir}/${subID}_T1W_brain ${fastDir}/${subID}_T1W_brain.nii.gz
+
+    # Rename segmentation outputs
+    mv ${fastDir}/${subID}_T1W_brain_seg_0.nii.gz ${fastDir}/${subID}_T1W_brain_csfseg.nii.gz
+    mv ${fastDir}/${subID}_T1W_brain_seg_1.nii.gz ${fastDir}/${subID}_T1W_brain_gmseg.nii.gz
+    mv ${fastDir}/${subID}_T1W_brain_seg_2.nii.gz ${fastDir}/${subID}_T1W_brain_wmseg.nii.gz
+
+    # Apply bias field also to non-bet image
     fslmaths ${fastDir}/${subID}_T1W.nii.gz \
             -div ${fastDir}/${subID}_T1W_brain_bias.nii.gz \
             ${fastDir}/${subID}_T1W_restore.nii.gz
+    ) &
 
     # --------------------------------------------------------------------------------
-    #  Registration to MNI
+    #  Registration to MNI using ANTs
     # --------------------------------------------------------------------------------
 
-    # Initial linear registration
-    flirt -ref ${mniImage}_brain \
-            -in ${fastDir}/${subID}_T1W_brain_restore \
-            -out ${WD}/${subID}_T1W_MNI_brain_affine \
-            -omat $WD/struct2mni_affine.mat \
-            -dof 12 -v
+    # Execute
+    antsRegistrationSyN.sh \
+        -d 3 \
+        -f ${mniImage}.nii.gz \
+        -m ${fastDir}/${subID}_T1W.nii.gz \
+        -o ${mniDir}/antsOut_ \
+        -n $nThreads
 
-    # Non-linear registration
-    fnirt --in=${fastDir}/${subID}_T1W_restore \
-            --config=T1_2_MNI152_2mm \
-            --aff=$WD/struct2mni_affine.mat \
-            --warpres=6,6,6 \
-            --cout=$WD/struct2mni -v
-
-    # Apply
-    applywarp --ref=${mniImage} \
-        --in=${fastDir}/${subID}_T1W_restore \
-        --warp=$WD/struct2mni \
-        --out=${WD}/${subID}_T1W_MNI \
-        --interp=sinc
+    # Rename final images
+    mv ${mniDir}/antsOut_Warped.nii.gz ${mniDir}/${subID}_T1W_MNI.nii.gz
+    mv ${mniDir}/antsOut_1Warp.nii.gz ${mniDir}/struct2mni.nii.gz
 
 }
 
