@@ -12,7 +12,7 @@ nTasks=9 # length of taskList
 #roTimeList=(0.0415863 0.0432825 0.0415863 0.0415863 0.025030 0.0432825 0.0415863 0.0415863 0.025030)
 #nThreadsS=36
 VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT" # data folder
-fmapType="GRE" # options: SPE, EPI, GRE
+fmapType="SPE" # options: SPE, EPI, GRE
 mniImage=$FSLDIR/data/standard/MNI152_T1_1mm                         # MNI template
 groupVSMDir=${VPDIR}/GroupAnalyses/VSM
 
@@ -108,3 +108,49 @@ fsleyes --showColourBar --colourBarLocation right --colourBarLabelSide top-left 
 
 # Display group std
 fsleyes --showColourBar --colourBarLocation right --colourBarLabelSide top-left --colourBarSize 50.0 --worldLoc 0.0 0.0 0.0 $mniImage $groupVSMDir/VSM_${fmapType}_group_std -dr -0 3 -cm blue-lightblue --alpha 85  &
+
+# --------------------------------------------------------------------------------
+#  List select TR
+# --------------------------------------------------------------------------------
+# Initialize all subject vsm list
+trString="TR0500"
+
+vsmListSelect=""
+if [ $trString = "TR0500" ]; then
+    taskList="TASK-AA-0500 TASK-UA-0500"
+elif [ $trString = "TR0750" ]; then
+    taskList="TASK-AA-0750 TASK-UA-0750"
+elif [ $trString = "TR1000" ]; then
+    taskList="TASK-LOC-1000 TASK-AA-1000 TASK-UA-1000"
+elif [ $trString = "TR2500" ]; then
+    taskList="TASK-AA-2500 TASK-UA-2500"
+fi
+
+# Iterate on the subjects
+for subID in $subList
+do
+
+    # Iterate on the runs
+    for taskName in $taskList
+    do
+
+        vsmDir="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-${fmapType}/vsm"
+
+        vsmListSelect+="${vsmDir}/fieldmap_vsm_brain_MNI.nii.gz "
+
+    done # end run iteration
+
+done # end subject iteration
+
+# Merge all VSMs
+fslmerge -t $groupVSMDir/VSM_${fmapType}_${trString}_group_merge $vsmListSelect
+
+# Calculate mean and std
+fslmaths $groupVSMDir/VSM_${fmapType}_${trString}_group_merge -Tmean $groupVSMDir/VSM_${fmapType}_${trString}_group_mean
+fslmaths $groupVSMDir/VSM_${fmapType}_${trString}_group_merge -Tstd $groupVSMDir/VSM_${fmapType}_${trString}_group_std
+
+# Display group mean
+fsleyes --showColourBar --colourBarLocation right --colourBarLabelSide top-left --colourBarSize 50.0 --worldLoc 0.0 0.0 0.0 $mniImage $groupVSMDir/VSM_${fmapType}_${trString}_group_mean -dr -8 8 -cm render3 --alpha 85  &
+
+# Display group std
+fsleyes --showColourBar --colourBarLocation right --colourBarLabelSide top-left --colourBarSize 50.0 --worldLoc 0.0 0.0 0.0 $mniImage $groupVSMDir/VSM_${fmapType}_${trString}_group_std -dr -0 3 -cm blue-lightblue --alpha 85  &
