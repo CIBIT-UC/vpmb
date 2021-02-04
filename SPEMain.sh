@@ -27,6 +27,7 @@ speRoutine () {
     taskDir="${VPDIR}/${subID}/ANALYSIS/${taskName}"            # task directory
     fmapDir="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-SPE"   # fmap directory
     WD="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-SPE/work"   # working directory
+    t1Dir="${VPDIR}/${subID}/ANALYSIS/T1W"                      # T1w directory
     ro_time=${4} # in seconds
     nThreads=6 # number of threads
 
@@ -284,8 +285,9 @@ speRoutine () {
 
     # Estimate registration
     epi_reg --epi=$WD/func01_processed.nii.gz \
-            --t1=$VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W.nii.gz \
-            --t1brain=$VPDIR/$subID/ANALYSIS/T1W/BET/${subID}_T1W_brain.nii.gz \
+            --t1=${t1Dir}/FAST/${subID}_T1W_restore \
+            --t1brain=${t1Dir}/FAST/${subID}_T1W_brain_restore \
+            --wmseg=${t1Dir}/FAST/${subID}_T1W_brain_wmseg \
             --out=$WD/func2struct -v
 
     # --------------------------------------------------------------------------------
