@@ -289,7 +289,7 @@ epi_reg --epi=$WD/func01_processed.nii.gz \
         --out=$WD/func2struct -v
 
 # Check visually
-fsleyes ${t1Dir}/FAST/${subID}_T1W_restore.nii.gz ${WD}/func2struct.nii.gz &
+fsleyes ${t1Dir}/FAST/${subID}_T1W_restore.nii.gz ${WD}/func2struct.nii.gz ${WD}/func2struct_fast_wmedge.nii.gz &
 
 # --------------------------------------------------------------------------------
 #  Elapsed time
