@@ -9,9 +9,9 @@
 subList="VPMBAUS01 VPMBAUS02 VPMBAUS03 VPMBAUS05 VPMBAUS06 VPMBAUS07 VPMBAUS08 VPMBAUS10 VPMBAUS11 VPMBAUS12 VPMBAUS15 VPMBAUS16 VPMBAUS21 VPMBAUS22 VPMBAUS23"
 taskList="TASK-LOC-1000 TASK-AA-0500 TASK-AA-0750 TASK-AA-1000 TASK-AA-2500 TASK-UA-0500 TASK-UA-0750 TASK-UA-1000 TASK-UA-2500"
 roTimeList=(0.0415863 0.0432825 0.0415863 0.0415863 0.025030 0.0432825 0.0415863 0.0415863 0.025030)
-nThreadsS=18
+nThreadsS=6
 VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT" # data folder
-fmapType="GRE"  # options: SPE, EPI, GRE
+fmapType="GRE-SPE"  # options: GRE-SPE, GRE-EPI, GRE, SPE, EPI
 
 # --------------------------------------------------------------------------------
 #  Define function
@@ -149,7 +149,7 @@ vsmRoutineGRE(){
     VPDIR=${1}            # data folder
     subID=${2}            # subject ID
     taskName=${3}         # task name
-    fmapType="GRE"
+    fmapType=${4}
 
     taskDir="${VPDIR}/${subID}/ANALYSIS/${taskName}"                     # task directory
     fmapDir="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-${fmapType}"    # fmap directory
@@ -265,9 +265,9 @@ do
         roTime=${roTimeList[$roCounter]}
        
         # main function
-        if [ $fmapType = "GRE" ] ; then
+        if [ $fmapType = "GRE" ] || [ $fmapType = "GRE-SPE" ] || [ $fmapType = "GRE-EPI" ] ; then
 
-            vsmRoutineGRE ${VPDIR} ${subID} ${taskName}
+            vsmRoutineGRE ${VPDIR} ${subID} ${taskName} ${fmapType}
 
         else
 

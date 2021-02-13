@@ -12,7 +12,7 @@ nTasks=9 # length of taskList
 #roTimeList=(0.0415863 0.0432825 0.0415863 0.0415863 0.025030 0.0432825 0.0415863 0.0415863 0.025030)
 #nThreadsS=36
 VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT" # data folder
-fmapType="SPE" # options: SPE, EPI, GRE
+fmapType="GRE-SPE" # options: SPE, EPI, GRE, GRE-EPI, GRE-SPE
 mniImage=$FSLDIR/data/standard/MNI152_T1_1mm                         # MNI template
 groupVSMDir=${VPDIR}/GroupAnalyses/VSM
 

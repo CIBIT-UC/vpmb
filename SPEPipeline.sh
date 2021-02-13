@@ -137,7 +137,7 @@ flirt -ref $WD/func01.nii.gz \
       -applyxfm -v
 
 # Calculate Equivalent Field Map (magnitude+phase)
-fslmaths ${WD}/TopupField -mul 6.283 ${WD}/GREfromTOPUP-Phase
+fslmaths ${WD}/TopupField -mul 6.283 ${WD}/GREfromTOPUP-Phase # to obtain rads/s (rads/s = 2*pi*Hz). this is not really a Phase, but a fieldmap - equivalent to the output of fsl_prepare_fieldmap
 fslmaths ${WD}/Magnitudes -Tmean ${WD}/GREfromTOPUP-Magnitude
 bet ${WD}/GREfromTOPUP-Magnitude ${WD}/GREfromTOPUP-Magnitude_brain -f 0.4 -m #Brain extract the magnitude image
 

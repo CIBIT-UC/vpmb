@@ -13,7 +13,7 @@
 VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT"                                  # data folder
 subID="VPMBAUS01"                                                    # subject ID
 taskName="TASK-LOC-1000"                                             # task name
-fmapType="GRE"                                                       # options: SPE, EPI, GRE
+fmapType="GRE-EPI"                                                       # options: SPE, EPI, GRE
 taskDir="${VPDIR}/${subID}/ANALYSIS/${taskName}"                     # task directory
 fmapDir="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-${fmapType}"    # fmap directory
 t1Dir="${VPDIR}/${subID}/ANALYSIS/T1W"                               # T1w directory
