@@ -13,7 +13,7 @@
 VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT"                                  # data folder
 subID="VPMBAUS01"                                                    # subject ID
 taskName="TASK-LOC-1000"                                             # task name
-fmapType="EPI"                                                       # options: SPE, EPI. for GRE use VSMPipelineGRE.sh
+fmapType="NLREG"                                                       # options: SPE, EPI. for GRE use VSMPipelineGRE.sh
 taskDir="${VPDIR}/${subID}/ANALYSIS/${taskName}"                     # task directory
 fmapDir="${VPDIR}/${subID}/ANALYSIS/${taskName}/FMAP-${fmapType}"    # fmap directory
 t1Dir="${VPDIR}/${subID}/ANALYSIS/T1W"                               # T1w directory
@@ -49,7 +49,13 @@ elif [ ${fmapType} = "EPI" ]; then
     cp $fmapDir/work/TopupField.nii.gz $vsmDir/fieldmap.nii.gz # output field of topup
     cp $fmapDir/work/epi-ap_dc_jac.nii.gz $vsmDir/fmapReference.nii.gz # distortion corrected AP image
 
+elif [ ${fmapType} = "NLREG" ]; then
+
+    cp $fmapDir/work/func012invt1_down_moderate_0Warp.nii.gz $vsmDir/fieldmap.nii.gz
+
 fi
+
+fsleyes $vsmDir/fieldmap -dr -10 10 -cm brain_colours_diverging_bwr_iso &
 
 # --------------------------------------------------------------------------------
 #  Calculate VSM
