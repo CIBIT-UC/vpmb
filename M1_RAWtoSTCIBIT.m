@@ -23,14 +23,14 @@ addpath('/home/alexandresayal/Documents/MATLAB/jsonlab')
 % Make sure dcm2niix version 1.0.20201102  is installed
 
 %% Settings
-subID = 'VPMBAUS16';
+subID = 'VPMBAUS01';
 
-rawDicomFolder = '/home/alexandresayal/Desktop/BIDS-VPMB/sourcedata/12/01';
+rawDicomFolder = '/home/alexandresayal/Desktop/BIDS-VPMB/sourcedata/01/01';
 niiFolder = ['/home/alexandresayal/Desktop/VPMB-NIFTI/' subID];
 stcibitFolder = ['/home/alexandresayal/Desktop/VPMB-STCIBIT/' subID];
-physioFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS16_LOGS';
-keypressFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS16_KEYS';
-eyetrackerFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS16_EYETRACKER';
+physioFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS01_LOGS';
+keypressFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS01_KEYS';
+eyetrackerFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS01_EYETRACKER';
 
 protocolFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/PRTs/renamedForSTCIBIT';
 
