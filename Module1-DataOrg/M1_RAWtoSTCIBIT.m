@@ -1,14 +1,17 @@
 % ----------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
-% MODULE 1 - Data managment
+% MODULE 1 - Data organization
 % Script Name: M1_RAWtoSTCIBIT.m
 %
-% Intended for...
+% Convert the dataset to the STCIBIT format:
+% - Fetch the DICOM data files and convert them to nifti
+% - Fetch keypress, eyetracker, and physio data and copy them
+% - Reorganize!
 %
 % Author: Alexandre Sayal, PhD student
 % Coimbra Institute for Biomedical Imaging and Translational Research
 % Email address: alexandresayal@gmail.com
-% December 2020; Last revision: 21-Dec-2020
+% December 2020; Last revision: 05-Apr-2021
 % ----------------------------------------------------------------------- %
 
 %% Start clean
@@ -20,56 +23,70 @@ clear,clc,close all
 addpath('/home/alexandresayal/Documents/MATLAB/jsonlab')
 
 % 2) dcm2niix (https://github.com/rordenlab/dcm2niix)
-% Make sure dcm2niix version 1.0.20201102  is installed
+% Make sure dcm2niix version 1.0.20201102 or greater is installed 
 
 %% Settings
 subID = 'VPMBAUS01';
 
-rawDicomFolder = '/home/alexandresayal/Desktop/BIDS-VPMB/sourcedata/01/01';
-niiFolder = ['/home/alexandresayal/Desktop/VPMB-NIFTI/' subID];
-stcibitFolder = ['/home/alexandresayal/Desktop/VPMB-STCIBIT/' subID];
-physioFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS01_LOGS';
-keypressFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS01_KEYS';
-eyetrackerFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/VPMBAUS01_EYETRACKER';
+basePath = '/home/alexandresayal/Desktop';
 
-protocolFolder = '/media/alexandresayal/DATA_1TB/RAW_DATA_VP_MBEPI_Codev0.5/PRTs/renamedForSTCIBIT';
+%% Subject folders to export data
+niiFolder = fullfile(basePath,'VPMB-NII',subID);
+stcibitFolder = fullfile(basePath,'VPMB-STCIBIT',subID);
 
-%% Conversion to Nifti
+%% Subject sub-folders of RAW folder
+dicomFolder = fullfile(basePath,'VPMB-RAW',subID,'DICOM');
+physioFolder = fullfile(basePath,'VPMB-RAW',subID,'PHYSIO');
+keypressFolder = fullfile(basePath,'VPMB-RAW',subID,'KEYPRESS');
+eyetrackerFolder = fullfile(basePath,'VPMB-RAW',subID,'EYETRACKER');
+protocolFolder = fullfile(basePath,'VPMB-RAW',subID,'PROTOCOL');
+
+%% Import naming match
+% This is a custom file with the match between the sequence name and the desired name
+% in the STCIBIT format.
+
+T = importMatchFile(fullfile(basePath,'VPMB-RAW','MatchMatrix.csv'));
+
+%% Avoid editing beyond this point.
+% Okay?
+
+%% Conversion to nifti
 
 % create nii folder if it does not exist
 if ~exist(niiFolder,'dir')
     mkdir(niiFolder)
+    fprintf('[%s] %s folder created.\n',datestr(now),niiFolder)
 end
 
 % check if folder is empty
 if length(dir(niiFolder)) > 2
-   error('Please remove all files in niiFolder') 
+   error(sprintf('[%s] Please remove all files in %s.\n',datestr(now),niiFolder)) 
 end
 
-disp('--| Converting files to nii...')
+fprintf('[%s] Start conversion to nifti with dcm2niix...\n',datestr(now))
 
-bCmd = sprintf('dcm2niix -f "%%d" -p y -z y -o "%s" "%s"',niiFolder,rawDicomFolder);
+% create dcm2niix command
+bCmd = sprintf('dcm2niix -f "%%d" -p y -z y -o "%s" "%s"',niiFolder,dicomFolder);
 
+fprintf('[%s] dcm2niix command:\nbCmd\n\n',datestr(now))
+
+% execute dcm2niix
 system(bCmd)
 
-%% Import naming match
-% custom file with the match between the sequence name and the desired name
-% in the STCIBIT format.
-
-T = importMatchFile('runNameMatch.csv');
+fprintf('[%s] Nifti conversion complete.\n',datestr(now))
 
 %% Read NIFTI folder and copy files
 
-disp('--| Copying nii files...')
+fprintf('[%s] Copying nii files to stcibit...\n',datestr(now))
 
-Ndir = dir(niiFolder);
+Ndir = dir(niiFolder); % Change this to avoid the workaround 3 in the next line
 
 for ii = 3:length(Ndir) % mind this 3 - it may vary with OS
     
     % retrieve name and extension
     aux = strsplit(Ndir(ii).name,'.');
     
-    if strcmp(aux{end},'gz') % needed workaround due to inconsistent number of dots in some files
+    if strcmp(aux{end},'gz') % needed workaround due to inconsistent number of dots in some files (.json vs .nii.gz)
         name = strjoin(aux(1:end-2),'.');
         ext = 'nii.gz';        
     else
@@ -81,9 +98,9 @@ for ii = 3:length(Ndir) % mind this 3 - it may vary with OS
     idx = find(strcmp(T(:,1),name));
     
     % Copy and rename
-    if isempty(idx) % will not be copied (discarded on purpose? =) )
+    if isempty(idx) % will not be copied (make sure it is discarded on purpose!)
         
-        warning([name ' name does not exist in match file'])
+        warning(sprintf('[%s] %s does not exist in match file. Make sure it is discarded on purpose!\n',datestr(now),name))
         
     else
         
@@ -105,11 +122,13 @@ for ii = 3:length(Ndir) % mind this 3 - it may vary with OS
             
         end
         
-    end
+    end % end if
     
-end
+end % end nii file iteration
 
-%% Retrieve run order
+fprintf('[%s] Nifti files copy completed.\n',datestr(now))
+
+%% Retrieve run order based on .json info
 
 D = dir(fullfile(stcibitFolder,'RAW','TASK-*'));
 
@@ -132,9 +151,11 @@ RunOrder = sortrows(RunOrder,2);
 tt = table(RunOrder(:,1),RunOrder(:,2),'VariableNames',{'RunName','Time'});
 write(tt,fullfile(stcibitFolder,'RAW','runOrder.txt'))
 
+fprintf('[%s] Run order retrieved.\n',datestr(now))
+
 %% Copy Physio files
 
-disp('--| Copying physio files...')
+fprintf('[%s] Copying physio files...\n',datestr(now))
 
 D = dir(fullfile(physioFolder,'*.log'));
 D = sort(extractfield(D,'name'))';
@@ -162,7 +183,7 @@ end
 
 %% Copy Eyetracker data
 
-disp('--| Copying eyetracker files...')
+fprintf('[%s] Copying eyetracker files...\n',datestr(now))
 
 D = dir(fullfile(eyetrackerFolder,'*.edf'));
 
@@ -186,7 +207,7 @@ end
 
 %% Copy keypress data
 
-disp('--| Copying keypress files...')
+fprintf('[%s] Copying keypress files...\n',datestr(now))
 
 D = dir(fullfile(keypressFolder,'*.mat'));
 D = extractfield(D,'name')';
@@ -228,7 +249,7 @@ end
 
 %% Copy protocol data
 
-disp('--| Copying protocol files...')
+fprintf('[%s] Copying protocol files...\n',datestr(now))
 
 for ii = 1:size(RunOrder,1)
     
@@ -238,9 +259,4 @@ for ii = 1:size(RunOrder,1)
 end
 
 %% Done
-
-disp('--| Done!')
-
-
-
-
+fprintf('[%s] Done!\n',datestr(now))
