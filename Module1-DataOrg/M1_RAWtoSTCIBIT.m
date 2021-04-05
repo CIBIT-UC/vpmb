@@ -24,11 +24,12 @@ addpath('/home/alexandresayal/Documents/MATLAB/jsonlab')
 
 % 2) dcm2niix (https://github.com/rordenlab/dcm2niix)
 % Make sure dcm2niix version 1.0.20201102 or greater is installed 
+system('dcm2niix -v');
 
 %% Settings
 subID = 'VPMBAUS01';
 
-basePath = '/home/alexandresayal/Desktop';
+basePath = '/media/alexandresayal/DATA4TB';
 
 %% Subject folders to export data
 niiFolder = fullfile(basePath,'VPMB-NII',subID);
@@ -60,7 +61,7 @@ end
 
 % check if folder is empty
 if length(dir(niiFolder)) > 2
-   error(sprintf('[%s] Please remove all files in %s.\n',datestr(now),niiFolder)) 
+   error('[%s] Please remove all files in %s.\n',datestr(now),niiFolder)
 end
 
 fprintf('[%s] Start conversion to nifti with dcm2niix...\n',datestr(now))
@@ -68,10 +69,10 @@ fprintf('[%s] Start conversion to nifti with dcm2niix...\n',datestr(now))
 % create dcm2niix command
 bCmd = sprintf('dcm2niix -f "%%d" -p y -z y -o "%s" "%s"',niiFolder,dicomFolder);
 
-fprintf('[%s] dcm2niix command:\nbCmd\n\n',datestr(now))
+fprintf('[%s] dcm2niix command:\n\n > %s \n\n',datestr(now),bCmd)
 
 % execute dcm2niix
-system(bCmd)
+system(bCmd);
 
 fprintf('[%s] Nifti conversion complete.\n',datestr(now))
 
@@ -100,7 +101,7 @@ for ii = 3:length(Ndir) % mind this 3 - it may vary with OS
     % Copy and rename
     if isempty(idx) % will not be copied (make sure it is discarded on purpose!)
         
-        warning(sprintf('[%s] %s does not exist in match file. Make sure it is discarded on purpose!\n',datestr(now),name))
+        warning('[%s] %s does not exist in match file. Make sure it is discarded on purpose!\n',datestr(now),name)
         
     else
         
