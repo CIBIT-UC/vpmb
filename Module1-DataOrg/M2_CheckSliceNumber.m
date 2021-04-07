@@ -1,31 +1,34 @@
 % ----------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
 % MODULE 1 - Data managment
-% Script Name: M1_CheckSliceNumber.m
+% Script Name: M2_CheckSliceNumber.m
 %
-% Intended for...
+% Intended for removing some extra slices from the data (inconsistent
+% protocols).
 %
 % Author: Alexandre Sayal, PhD student
 % Coimbra Institute for Biomedical Imaging and Translational Research
 % Email address: alexandresayal@gmail.com
-% December 2020; Last revision: 21-Dec-2020
+% December 2020; Last revision: 05-Apr-2021
 % ----------------------------------------------------------------------- %
 
-% Start clean
+%% Start clean
 clear,clc,close all
-stcibitFolder = '/home/alexandresayal/Desktop/VPMB-STCIBIT';
 
-% Retrive subject list
+%% Settings
+stcibitFolder = fullfile('/media','alexandresayal','DATA4TB','VPMB-STCIBIT');
+
+%% Retrive subject list
 D = dir(fullfile(stcibitFolder,'VPMBAUS*'));
 subjectList = extractfield(D,'name')';
 
-% Open figure
+%% Open figure
 figure('Name','Images to evalute','Position',[150 150 2000 1000])
 
-% Iterate
+%% Iterate
 for ss = 1:length(subjectList)
     
-    disp(['Subject ' subjectList{ss}])
+    fprintf('[%s] Subject %s...\n',datestr(now),subjectList{ss})
     
     % FMAP image
     F1 = niftiread(fullfile(stcibitFolder,subjectList{ss},...
@@ -74,15 +77,16 @@ for ss = 1:length(subjectList)
         system(sprintf('fslroi %s %s 0 -1 0 -1 %i 40',...
             nf4,nf4,I-1));
         
-        disp('Trimmed.')
-        
+        fprintf('[%s] Trimmed.\n',datestr(now))
+
     else
-        disp('All okay here.')
+        fprintf('[%s] All okay here.\n',datestr(now))
         
     end % end if
      
 end % end subject iteration
 
+%% Done
 close all
 
-disp('Done.')
+fprintf('[%s] Done!\n',datestr(now))
