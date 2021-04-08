@@ -27,7 +27,7 @@ addpath('/home/alexandresayal/Documents/MATLAB/jsonlab')
 system('dcm2niix -v');
 
 %% Settings
-subID = 'VPMBAUS01';
+subID = 'VPMBAUS23';
 
 basePath = '/media/alexandresayal/DATA4TB';
 
@@ -42,14 +42,16 @@ keypressFolder = fullfile(basePath,'VPMB-RAW',subID,'KEYPRESS');
 eyetrackerFolder = fullfile(basePath,'VPMB-RAW',subID,'EYETRACKER');
 protocolFolder = fullfile(basePath,'VPMB-RAW',subID,'PROTOCOL');
 
+%% Check subID
+if ~exist(dicomFolder,'dir')
+   error('[%s] subID=%s DICOM folder does not exist.\n',datestr(now),subID) 
+end
+
 %% Import naming match
 % This is a custom file with the match between the sequence name and the desired name
 % in the STCIBIT format.
 
-T = importMatchFile(fullfile(basePath,'VPMB-RAW','MatchMatrix.csv'));
-
-%% Avoid editing beyond this point.
-% Okay?
+T = importMatchFile(fullfile(basePath,'VPMB-RAW','aux-files','MatchMatrix.csv'));
 
 %% Conversion to nifti
 
@@ -106,7 +108,7 @@ for ii = 3:length(Ndir) % mind this 3 - it may vary with OS
     else
         
         % create new name
-        newName = [subID '_' T{idx,2} '.' ext];
+        newName = [T{idx,2} '.' ext];
         
         % copy to intendedFor folders
         folders = strsplit(T{idx,3},'.');
@@ -131,13 +133,16 @@ fprintf('[%s] Nifti files copy completed.\n',datestr(now))
 
 %% Retrieve run order based on .json info
 
+% Search stcibit folder for functional runs
 D = dir(fullfile(stcibitFolder,'RAW','TASK-*'));
 
+% Initialize cell array
 RunOrder = cell(length(D),2);
 
+% Iterate on the functional runs
 for ii = 1:length(D)
     
-    funcFile = fullfile(stcibitFolder,'RAW',D(ii).name,[subID '_' D(ii).name '.json']);
+    funcFile = fullfile(stcibitFolder,'RAW',D(ii).name,[D(ii).name '.json']);
     
     auxJ = loadjson(funcFile);
     
@@ -146,9 +151,10 @@ for ii = 1:length(D)
     
 end
 
+% Sort based on acquisition time (column 2)
 RunOrder = sortrows(RunOrder,2);
 
-% save run order as txt
+% Save run order as txt
 tt = table(RunOrder(:,1),RunOrder(:,2),'VariableNames',{'RunName','Time'});
 write(tt,fullfile(stcibitFolder,'RAW','runOrder.txt'))
 
@@ -174,7 +180,7 @@ for ii = 1:size(RunOrder,1)
         aux = strsplit(D{idx},'_');
         
         copyfile(fullfile(physioFolder,D{idx}),...
-            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_PHYSIO_' aux{end}]));
+            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',['PHYSIO_' aux{end}]));
         
         idx = idx + 1;
         
@@ -183,8 +189,6 @@ for ii = 1:size(RunOrder,1)
 end
 
 %% Copy Eyetracker data
-
-fprintf('[%s] Copying eyetracker files...\n',datestr(now))
 
 D = dir(fullfile(eyetrackerFolder,'*.edf'));
 
@@ -196,10 +200,12 @@ if ~isempty(D) % no eyetracker data available
     
     D = sort(extractfield(D,'name'))';
     
+    fprintf('[%s] Copying %i eyetracker files...\n',datestr(now),length(D))
+    
     for ii = 1:size(RunOrder,1)
         
         copyfile(fullfile(eyetrackerFolder,D{ii}),...
-            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_EYETRACKER.edf']));
+            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED','EYETRACKER.edf'));
         
     end
 else
@@ -207,8 +213,6 @@ else
 end
 
 %% Copy keypress data
-
-fprintf('[%s] Copying keypress files...\n',datestr(now))
 
 D = dir(fullfile(keypressFolder,'*.mat'));
 D = extractfield(D,'name')';
@@ -240,22 +244,24 @@ if length(D) ~= size(RunOrder,1)
     warning('number of keypress files is unexpected!')
 end
 
+fprintf('[%s] Copying %i keypress files...\n',datestr(now),length(D))
+
 % copy
 for ii = 1:size(RunOrder,1)
     
      copyfile(fullfile(keypressFolder,D{ii}),...
-            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_KEYPRESS.mat']));
+            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED','KEYPRESS.mat'));
     
 end
 
 %% Copy protocol data
 
-fprintf('[%s] Copying protocol files...\n',datestr(now))
+fprintf('[%s] Copying %i protocol files...\n',datestr(now),size(RunOrder,1))
 
 for ii = 1:size(RunOrder,1)
     
      copyfile(fullfile(protocolFolder,[RunOrder{ii,1} '.prt']),...
-            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_PROTOCOL.prt']));
+            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED','PROTOCOL.prt'));
     
 end
 
