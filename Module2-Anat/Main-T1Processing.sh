@@ -1,6 +1,21 @@
 #!/bin/bash
 
-# Pipeline for estimating T1 to MNI transformation for all subjects
+# Pipeline for T1 data processing for all subjects
+
+# Steps
+# - Copy T1 files to SCRATCH and make folders
+# - Brain Extraction with ANTs
+# - Bias field and segmentation with FAST
+# - Registration to MNI with antsRegistrationSyN.sh
+
+# Outputs
+# - ${subID}_T1W_brain
+# - ${subID}_T1W_brain_mask
+# - ${subID}_T1W_brain_bias.nii.gz
+# - ${subID}_T1W_brain_restore.nii.gz
+# - ${subID}_T1W_restore.nii.gz
+# - ${subID}_T1W_MNI.nii.gz
+# - struct2mni.nii.gz
 
 # Requirements for this script
 #  installed versions of: FSL, ANTS
@@ -14,7 +29,8 @@
 
 subList="VPMBAUS01 VPMBAUS02 VPMBAUS03 VPMBAUS05 VPMBAUS06 VPMBAUS07 VPMBAUS08 VPMBAUS10 VPMBAUS11 VPMBAUS12 VPMBAUS15 VPMBAUS16 VPMBAUS21 VPMBAUS22 VPMBAUS23"
 nThreadsS=4 # subjects in parallel. take into account the nThreads variable inside the t1tomniRoutine
-VPDIR="/DATAPOOL/VPMB/VPMB-STCIBIT" # data folder
+DATADIR="/DATAPOOL/VPMB/VPMB-STCIBIT-V2" # data folder
+VPDIR="/SCRATCH/users/alexandresayal/VPMB" # processing folder
 
 # --------------------------------------------------------------------------------
 #  Define function
@@ -26,8 +42,10 @@ t1tomniRoutine () {
     #  Settings
     # --------------------------------------------------------------------------------
 
-    VPDIR=${1}                                    # data folder
-    subID=${2}                                    # subject ID
+    DATADIR=${1}                                  # data folder
+    VPDIR=${2}                                    # processing folder
+    subID=${3}                                    # subject ID
+    t1Dir="${VPDIR}/${subID}/ANALYSIS/T1W"        # T1 directory
     betDir="${VPDIR}/${subID}/ANALYSIS/T1W/BET"   # structural directory
     fastDir="${VPDIR}/${subID}/ANALYSIS/T1W/FAST" # FAST directory
     mniDir="${VPDIR}/${subID}/ANALYSIS/T1W/MNI"   # working directory
@@ -60,16 +78,39 @@ t1tomniRoutine () {
         echo "--> FAST folder ready."
     fi
 
-    # --------------------------------------------------------------------------------
-    #  BET T1W
-    # --------------------------------------------------------------------------------
-    # (cannot use the output from ANTs because it is already restored)
+    # betDir
+    if [ ! -e $betDir ] ; then # not exists
+        mkdir -p $betDir
+        echo "--> BET folder created."
+    elif [ "$(ls -A ${betDir})" ] ; then # not empty
+        rm -r ${betDir}/*
+        echo "--> BET folder cleared."
+    else
+        echo "--> BET folder ready."
+    fi
 
-    # Copy file
-    cp $betDir/${subID}_T1W.nii.gz $fastDir/${subID}_T1W.nii.gz 
+    # --------------------------------------------------------------------------------
+    #  Copy file from DATAPOOL
+    # --------------------------------------------------------------------------------
 
-    # Apply  brain mask
-    fslmaths $fastDir/${subID}_T1W -mas $betDir/${subID}_T1W_brain_mask $fastDir/${subID}_T1W_brain
+    cp $DATADIR/${subID}/RAW/T1W/T1W.nii.gz $t1Dir/${subID}_T1W.nii.gz 
+
+    # --------------------------------------------------------------------------------
+    #  Brain Extraction with ANTs
+    # --------------------------------------------------------------------------------
+
+    antsBrainExtraction.sh -d 3 \
+                           -a ${t1Dir}/${subID}_T1W.nii.gz \
+                           -e /DATAPOOL/home/alexandresayal/OASIS-Templates/T_template0.nii.gz \
+                           -m /DATAPOOL/home/alexandresayal/OASIS-Templates/T_template0_BrainCerebellumProbabilityMask.nii.gz \
+                           -o ${betDir}/antsBet_
+
+    # Rename
+    mv ${betDir}/antsBet_BrainExtractionBrain.nii.gz ${t1Dir}/${subID}_T1W_brain_restore.nii.gz
+    mv ${betDir}/antsBet_BrainExtractionMask.nii.gz ${betDir}/${subID}_T1W_brain_mask.nii.gz
+
+    # Apply brain mask to non bet image
+    fslmaths $t1Dir/${subID}_T1W -mas $betDir/${subID}_T1W_brain_mask $t1Dir/${subID}_T1W_brain
 
     # --------------------------------------------------------------------------------
     #  Bias field correction
@@ -78,17 +119,17 @@ t1tomniRoutine () {
     (
     # Execute FAST
     # will export bias-corrected image (-B) and binary images for the three tissue types (segmentation, -g)
-    fast -b -B -v -g -o ${fastDir}/${subID}_T1W_brain ${fastDir}/${subID}_T1W_brain.nii.gz
+    fast -b -B -v -g -o ${fastDir}/${subID}_T1W_brain ${t1Dir}/${subID}_T1W_brain.nii.gz
 
     # Rename segmentation outputs
-    mv ${fastDir}/${subID}_T1W_brain_seg_0.nii.gz ${fastDir}/${subID}_T1W_brain_csfseg.nii.gz
-    mv ${fastDir}/${subID}_T1W_brain_seg_1.nii.gz ${fastDir}/${subID}_T1W_brain_gmseg.nii.gz
-    mv ${fastDir}/${subID}_T1W_brain_seg_2.nii.gz ${fastDir}/${subID}_T1W_brain_wmseg.nii.gz
+    mv ${fastDir}/${subID}_T1W_brain_seg_0.nii.gz ${fastDir}/${subID}_T1W_brain_seg-csf.nii.gz
+    mv ${fastDir}/${subID}_T1W_brain_seg_1.nii.gz ${fastDir}/${subID}_T1W_brain_seg-gm.nii.gz
+    mv ${fastDir}/${subID}_T1W_brain_seg_2.nii.gz ${fastDir}/${subID}_T1W_brain_seg-wm.nii.gz
 
     # Apply bias field also to non-bet image
-    fslmaths ${fastDir}/${subID}_T1W.nii.gz \
+    fslmaths ${t1Dir}/${subID}_T1W.nii.gz \
             -div ${fastDir}/${subID}_T1W_brain_bias.nii.gz \
-            ${fastDir}/${subID}_T1W_restore.nii.gz
+            ${t1Dir}/${subID}_T1W_restore.nii.gz
     ) &
 
     # --------------------------------------------------------------------------------
@@ -99,7 +140,7 @@ t1tomniRoutine () {
     antsRegistrationSyN.sh \
         -d 3 \
         -f ${mniImage}.nii.gz \
-        -m ${fastDir}/${subID}_T1W.nii.gz \
+        -m ${t1Dir}/${subID}_T1W.nii.gz \
         -o ${mniDir}/antsOut_ \
         -n $nThreads
 
@@ -113,6 +154,10 @@ t1tomniRoutine () {
 #  Iteration
 # --------------------------------------------------------------------------------
 
+# Limit ANTs threading
+origN=$ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=10
+
 # start the clock
 startTime=`date "+%s"`
 
@@ -124,7 +169,7 @@ do
 
     echo "------> SUBJECT ${subID} <------"
 
-    t1tomniRoutine ${VPDIR} ${subID}
+    t1tomniRoutine ${DATADIR} ${VPDIR} ${subID}
 
     ) & # parallel power
 
@@ -147,3 +192,6 @@ endTime="`date "+%s"`"
 elapsedTime=$(($endTime - $startTime))
 ((sec=elapsedTime%60, elapsedTime/=60, min=elapsedTime%60, hrs=elapsedTime/60))
 echo "---> ELAPSED TIME $(printf "%d:%02d:%02d" $hrs $min $sec)"
+
+# Restore ANTs limit
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=${origN}
