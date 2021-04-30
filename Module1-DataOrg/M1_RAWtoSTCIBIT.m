@@ -11,7 +11,7 @@
 % Author: Alexandre Sayal, PhD student
 % Coimbra Institute for Biomedical Imaging and Translational Research
 % Email address: alexandresayal@gmail.com
-% December 2020; Last revision: 05-Apr-2021
+% December 2020; Last revision: 30-Apr-2021
 % ----------------------------------------------------------------------- %
 
 %% Start clean
@@ -55,41 +55,43 @@ T = importMatchFile(fullfile(basePath,'VPMB-RAW','aux-files','MatchMatrix.csv'))
 
 %% Conversion to nifti
 
-% create nii folder if it does not exist
-if ~exist(niiFolder,'dir')
-    mkdir(niiFolder)
-    fprintf('[%s] %s folder created.\n',datestr(now),niiFolder)
-end
-
-% check if folder is empty
-if length(dir(niiFolder)) > 2
-   error('[%s] Please remove all files in %s.\n',datestr(now),niiFolder)
-end
-
-fprintf('[%s] Start conversion to nifti with dcm2niix...\n',datestr(now))
-
-% create dcm2niix command
-bCmd = sprintf('dcm2niix -f "%%d" -p y -z y -o "%s" "%s"',niiFolder,dicomFolder);
-
-fprintf('[%s] dcm2niix command:\n\n > %s \n\n',datestr(now),bCmd)
-
-% execute dcm2niix
-system(bCmd);
-
-fprintf('[%s] Nifti conversion complete.\n',datestr(now))
+% % create nii folder if it does not exist
+% if ~exist(niiFolder,'dir')
+%     mkdir(niiFolder)
+%     fprintf('[%s] %s folder created.\n',datestr(now),niiFolder)
+% end
+% 
+% % check if folder is empty
+% if length(dir(niiFolder)) > 2
+%    error('[%s] Please remove all files in %s.\n',datestr(now),niiFolder)
+% end
+% 
+% fprintf('[%s] Start conversion to nifti with dcm2niix...\n',datestr(now))
+% 
+% % create dcm2niix command
+% bCmd = sprintf('dcm2niix -f "%%d" -p y -z y -o "%s" "%s"',niiFolder,dicomFolder);
+% 
+% fprintf('[%s] dcm2niix command:\n\n > %s \n\n',datestr(now),bCmd)
+% 
+% % execute dcm2niix
+% system(bCmd);
+% 
+% fprintf('[%s] Nifti conversion complete.\n',datestr(now))
 
 %% Read NIFTI folder and copy files
 
 fprintf('[%s] Copying nii files to stcibit...\n',datestr(now))
 
-Ndir = dir(niiFolder); % Change this to avoid the workaround 3 in the next line
+Ndir = dir(niiFolder); % Fetch files
 
-for ii = 3:length(Ndir) % mind this 3 - it may vary with OS
+Ndir(cell2mat(extractfield(Ndir,'isdir'))) = []; % Remove '.' and '..'
+
+for ii = 1:length(Ndir) % iterate
     
     % retrieve name and extension
     aux = strsplit(Ndir(ii).name,'.');
     
-    if strcmp(aux{end},'gz') % needed workaround due to inconsistent number of dots in some files (.json vs .nii.gz)
+    if strcmp(aux{end},'gz') % needed workaround due to inconsistent number of dots in the extension of some files (.json vs .nii.gz)
         name = strjoin(aux(1:end-2),'.');
         ext = 'nii.gz';        
     else
@@ -108,7 +110,7 @@ for ii = 3:length(Ndir) % mind this 3 - it may vary with OS
     else
         
         % create new name
-        newName = [T{idx,2} '.' ext];
+        newName = [subID '_' T{idx,2} '.' ext];
         
         % copy to intendedFor folders
         folders = strsplit(T{idx,3},'.');
@@ -142,12 +144,12 @@ RunOrder = cell(length(D),2);
 % Iterate on the functional runs
 for ii = 1:length(D)
     
-    funcFile = fullfile(stcibitFolder,'RAW',D(ii).name,[D(ii).name '.json']);
+    funcFile = fullfile(stcibitFolder,'RAW',D(ii).name,[subID '_' D(ii).name '.json']);
     
     auxJ = loadjson(funcFile);
     
     RunOrder{ii,1} = D(ii).name;
-    RunOrder{ii,2} = auxJ.AcquisitionTime;
+    RunOrder{ii,2} = auxJ.AcquisitionTime; % functional runs were acquired all on the same session/day. quite dangerous nevertheless :P
     
 end
 
@@ -180,7 +182,7 @@ for ii = 1:size(RunOrder,1)
         aux = strsplit(D{idx},'_');
         
         copyfile(fullfile(physioFolder,D{idx}),...
-            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',['PHYSIO_' aux{end}]));
+            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_' RunOrder{ii,1} '_PHYSIO_' aux{end}]));
         
         idx = idx + 1;
         
@@ -205,7 +207,7 @@ if ~isempty(D) % no eyetracker data available
     for ii = 1:size(RunOrder,1)
         
         copyfile(fullfile(eyetrackerFolder,D{ii}),...
-            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED','EYETRACKER.edf'));
+            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_' RunOrder{ii,1} '_EYETRACKER.edf']));
         
     end
 else
@@ -250,7 +252,7 @@ fprintf('[%s] Copying %i keypress files...\n',datestr(now),length(D))
 for ii = 1:size(RunOrder,1)
     
      copyfile(fullfile(keypressFolder,D{ii}),...
-            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED','KEYPRESS.mat'));
+            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_' RunOrder{ii,1} '_KEYPRESS.mat']));
     
 end
 
@@ -261,7 +263,7 @@ fprintf('[%s] Copying %i protocol files...\n',datestr(now),size(RunOrder,1))
 for ii = 1:size(RunOrder,1)
     
      copyfile(fullfile(protocolFolder,[RunOrder{ii,1} '.prt']),...
-            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED','PROTOCOL.prt'));
+            fullfile(stcibitFolder,'RAW',RunOrder{ii,1},'LINKED',[subID '_' RunOrder{ii,1} '_PROTOCOL.prt']));
     
 end
 
