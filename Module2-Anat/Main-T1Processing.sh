@@ -93,7 +93,7 @@ t1tomniRoutine () {
     #  Copy file from DATAPOOL
     # --------------------------------------------------------------------------------
 
-    cp $DATADIR/${subID}/RAW/T1W/T1W.nii.gz $t1Dir/${subID}_T1W.nii.gz 
+    cp $DATADIR/${subID}/RAW/T1W/${subID}_T1W.nii.gz $t1Dir/${subID}_T1W.nii.gz 
 
     # --------------------------------------------------------------------------------
     #  Brain Extraction with ANTs
@@ -103,6 +103,7 @@ t1tomniRoutine () {
                            -a ${t1Dir}/${subID}_T1W.nii.gz \
                            -e /DATAPOOL/home/alexandresayal/OASIS-Templates/T_template0.nii.gz \
                            -m /DATAPOOL/home/alexandresayal/OASIS-Templates/T_template0_BrainCerebellumProbabilityMask.nii.gz \
+                           -f /DATAPOOL/home/alexandresayal/OASIS-Templates/T_template0_BrainCerebellumRegistrationMask.nii.gz \
                            -o ${betDir}/antsBet_
 
     # Rename
