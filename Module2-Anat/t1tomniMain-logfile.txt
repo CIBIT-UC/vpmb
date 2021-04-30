@@ -46290,4 +46290,4 @@ Total elapsed time: 1569
 Total elapsed time: 1544
 ALL DONE!
 ---> ELAPSED TIME 3:07:20
-[01;32malexandresayal@sim01[00m:[01;34m~/GitRepos/vpmb/Module2-Anat[00m$ [K[01;32malexandresayal@sim01[00m:[01;34m~/GitRepos/vpmb/Module2-Anat[00m$ 
+[01;32malexandresayal@sim01[00m:[01;34m~/GitRepos/vpmb/Module2-Anat[00m$ [K[01;32malexandresayal@sim01[00m:[01;34m~/GitRepos/vpmb/Module2-Anat[00m$ [01;32malexandresayal@sim01[00m:[01;34m~/GitRepos/vpmb/Module2-Anat[00m$ ./Main-T1Processing.sh [K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K

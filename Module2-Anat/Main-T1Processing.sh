@@ -48,6 +48,7 @@ t1tomniRoutine () {
     t1Dir="${VPDIR}/${subID}/ANALYSIS/T1W"        # T1 directory
     betDir="${VPDIR}/${subID}/ANALYSIS/T1W/BET"   # structural directory
     fastDir="${VPDIR}/${subID}/ANALYSIS/T1W/FAST" # FAST directory
+    downDir="${VPDIR}/${subID}/ANALYSIS/T1W/DOWN" # downsampled directory
     mniDir="${VPDIR}/${subID}/ANALYSIS/T1W/MNI"   # working directory
     mniImage=$FSLDIR/data/standard/MNI152_T1_1mm  # MNI template
     nThreads=10                                   # Number of threads for ANTs (overides $ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS)
@@ -76,6 +77,17 @@ t1tomniRoutine () {
         echo "--> FAST folder cleared."
     else
         echo "--> FAST folder ready."
+    fi
+
+    # downDir
+    if [ ! -e $downDir ] ; then # not exists
+        mkdir -p $downDir
+        echo "--> DOWN folder created."
+    elif [ "$(ls -A ${downDir})" ] ; then # not empty
+        rm -r ${downDir}/*
+        echo "--> DOWN folder cleared."
+    else
+        echo "--> DOWN folder ready."
     fi
 
     # betDir
@@ -131,6 +143,56 @@ t1tomniRoutine () {
     fslmaths ${t1Dir}/${subID}_T1W.nii.gz \
             -div ${fastDir}/${subID}_T1W_brain_bias.nii.gz \
             ${t1Dir}/${subID}_T1W_restore.nii.gz
+    ) &
+
+    # --------------------------------------------------------------------------------
+    #  Generate Outskin mask
+    # --------------------------------------------------------------------------------
+
+    bet ${t1Dir}/${subID}_T1W_restore.nii.gz $betDir/${subID}_T1W_todelete -A -v
+
+    # rename
+    mv $betDir/${subID}_T1W_todelete_outskin_mask.nii.gz $betDir/${subID}_T1W_outskin_mask.nii.gz
+
+    # delete extra files
+    rm $betDir/${subID}_T1W_todelete*
+
+    # --------------------------------------------------------------------------------
+    #  Generate downsampled images
+    # --------------------------------------------------------------------------------
+
+    (
+
+    flirt -in ${t1Dir}/${subID}_T1W_restore.nii.gz \
+          -ref ${t1Dir}/${subID}_T1W_restore.nii.gz \
+          -applyisoxfm 2.5 \
+          -out ${downDir}/${subID}_T1W_down_restore.nii.gz \
+          -interp nearestneighbour -v
+    
+    flirt -in ${t1Dir}/${subID}_T1W_brain_restore.nii.gz \
+          -ref ${t1Dir}/${subID}_T1W_brain_restore.nii.gz \
+          -applyisoxfm 2.5 \
+          -out ${downDir}/${subID}_T1W_down_brain_restore.nii.gz \
+          -interp nearestneighbour -v
+    
+    flirt -in ${betDir}/${subID}_T1W_brain_mask.nii.gz \
+          -ref ${betDir}/${subID}_T1W_brain_mask.nii.gz \
+          -applyisoxfm 2.5 \
+          -out ${downDir}/${subID}_T1W_down_brain_mask.nii.gz \
+          -interp nearestneighbour -v
+
+    flirt -in ${fastDir}/${subID}_T1W_brain_seg-wm.nii.gz \
+          -ref ${fastDir}/${subID}_T1W_brain_seg-wm.nii.gz \
+          -applyisoxfm 2.5 \
+          -out ${downDir}/${subID}_T1W_down_brain_seg-wm.nii.gz \
+          -interp nearestneighbour -v
+
+    flirt -in $betDir/${subID}_T1W_outskin_mask.nii.gz \
+          -ref $betDir/${subID}_T1W_outskin_mask.nii.gz \
+          -applyisoxfm 2.5 \
+          -out ${downDir}/${subID}_T1W_down_outskin_mask.nii.gz \
+          -interp nearestneighbour -v    
+
     ) &
 
     # --------------------------------------------------------------------------------
