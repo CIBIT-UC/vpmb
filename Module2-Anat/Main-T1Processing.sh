@@ -129,7 +129,6 @@ t1tomniRoutine () {
     #  Bias field correction
     # --------------------------------------------------------------------------------
 
-    (
     # Execute FAST
     # will export bias-corrected image (-B) and binary images for the three tissue types (segmentation, -g)
     fast -b -B -v -g -o ${fastDir}/${subID}_T1W_brain ${t1Dir}/${subID}_T1W_brain.nii.gz
@@ -143,7 +142,6 @@ t1tomniRoutine () {
     fslmaths ${t1Dir}/${subID}_T1W.nii.gz \
             -div ${fastDir}/${subID}_T1W_brain_bias.nii.gz \
             ${t1Dir}/${subID}_T1W_restore.nii.gz
-    ) &
 
     # --------------------------------------------------------------------------------
     #  Generate Outskin mask
