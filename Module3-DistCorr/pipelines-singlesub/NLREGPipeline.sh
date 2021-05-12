@@ -164,6 +164,8 @@ antsApplyTransforms -d 3 \
         -t $WD/ants_outputTransform_0GenericAffine.mat \
         -o $WD/func01_brain_mask_rigid.nii.gz -v
 
+fslmaths $WD/func01_brain_mask_rigid.nii.gz -thr 0.9 $WD/func01_brain_mask_rigid.nii.gz
+
 #apply X and Y flips to warpfields
 #first negate all of them, then take the frames I need
 wb_command -volume-math '-x' \
