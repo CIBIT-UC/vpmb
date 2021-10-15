@@ -10,7 +10,7 @@ bids-validator $bidsFolder
 
 # fmriprep run
 fmriprep-docker $bidsFolder $bidsFolder/derivatives \
-    participant --participant-label 05 \
+    participant --participant-label 02 \
     --work-dir $workFolder \
     --fs-license-file /SCRATCH/software/freesurfer/license.txt \
     --fs-no-reconall \
@@ -22,7 +22,7 @@ fmriprep-docker $bidsFolder $bidsFolder/derivatives \
 ## PARALLEL PROCESSING
 
 # Open screen
-screen -L -Logfile $workFolder/log-terminal-vpmb-sub05.txt -S vpmb05
+screen -L -Logfile $workFolder/log-terminal-vpmb-sub21.txt -S vpmb21
 
 # Start
 #fmriprep-docker ...
