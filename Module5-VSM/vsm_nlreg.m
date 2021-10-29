@@ -49,15 +49,28 @@ cmd = sprintf('antsApplyTransforms -d 3 -e 3 -i %s -o %s -r %s -t %s -t %s -v 1'
 
 system(cmd)
 
-%% Adjust header
-warpMNIFilePath = fullfile(WD,[warpFileName '_MNI.nii.gz']);
+%% Apply brain mask
 
-warpMNIHeader = niftiinfo(warpMNIFilePath);
+cmd = sprintf('fslmaths %s -mas %s %s',...
+    fullfile(WD,[warpFileName '_MNI.nii.gz']), ...
+    fullfile(bidsFolder,'derivatives','fmriprep',['sub-' subjectID],'func',['sub-' subjectID '_task-' taskName '_acq-' TR '_run-1_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz']), ...
+    fullfile(WD,[warpFileName '_MNI_brain.nii.gz']));
 
-boldMNIFilePath = fullfile(bidsFolder,'derivatives','fmriprep',['sub-' subjectID],'func',['sub-' subjectID '_task-' taskName '_acq-' TR '_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz']);
+system(cmd)
 
-boldMNIHeader = niftiinfo(boldMNIFilePath)
-
+% %% Adjust header
+% warpMNIFilePath = fullfile(WD,[warpFileName '_MNI.nii.gz']);
+% 
+% warpMNI = niftiread(warpMNIFilePath);
+% 
+% boldMNIFilePath = fullfile(bidsFolder,'derivatives','fmriprep',['sub-' subjectID],'func',['sub-' subjectID '_task-' taskName '_acq-' TR '_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz']);
+% 
+% boldMNIHeader = niftiinfo(boldMNIFilePath);
+% 
+% %boldMNIHeader.ImageSize = boldMNIHeader.ImageSize(1:3);
+% %boldMNIHeader.PixelDimensions = boldMNIHeader.PixelDimensions(1:3);
+% 
+% niftiwrite(warpMNI,warpMNIFilePath,boldMNIHeader);
 
 
 %% average per TR
