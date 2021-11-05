@@ -102,9 +102,6 @@ for ss = 1:length(subjectList)
 
     system(cmd);
     
-    % Delete merge image
-    % TODO
-    
     %% Merge VSMs per TR
     TRs = {'0500','0750','1000','2500'};
     
@@ -128,9 +125,6 @@ for ss = 1:length(subjectList)
             fullfile(vsmFolder,[subjectID '_task-all_acq-' TRs{tt} '_space-MNI_warp_brain_std.nii.gz']));
 
         system(cmd);   
-        
-        % Delete merge image
-        % TODO
   
     end
 
