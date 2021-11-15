@@ -20,19 +20,23 @@ outputMatrix = zeros(nROIs,nTRs,nSubjects);
 
 for rr = 1:nROIs
     
-    % Resample roi mask to VSM resolution
-    cmd = sprintf('flirt -in %s -ref %s -applyxfm -usesqform -out %s',...
-        fullfile(roiFolder,roiList{rr}),...
-        fullfile(vsmFolder,'sub-all_task-all_acq-all_space-MNI_warp_brain_mean.nii.gz'),...
-        fullfile(roiFolder,[roiList{rr} '_space-VSM']) );
-    
-    system(cmd);
-    
-    cmd = sprintf('fslmaths %s -thr 0.5 -bin %s',...
-        fullfile(roiFolder,[roiList{rr} '_space-VSM']),...
-        fullfile(roiFolder,[roiList{rr} '_space-VSM']) );
-    
-    system(cmd);
+    if ~exist(fullfile(roiFolder,[roiList{rr} '_space-VSM']),'file')
+        
+        % Resample roi mask to VSM resolution
+        cmd = sprintf('flirt -in %s -ref %s -applyxfm -usesqform -out %s',...
+            fullfile(roiFolder,roiList{rr}),...
+            fullfile(vsmFolder,'sub-all_task-all_acq-all_space-MNI_warp_brain_mean.nii.gz'),...
+            fullfile(roiFolder,[roiList{rr} '_space-VSM']) );
+
+        system(cmd);
+
+        cmd = sprintf('fslmaths %s -thr 0.5 -bin %s',...
+            fullfile(roiFolder,[roiList{rr} '_space-VSM']),...
+            fullfile(roiFolder,[roiList{rr} '_space-VSM']) );
+
+        system(cmd);
+        
+    end
     
     % Iterate on the TRs
     for tt = 1:nTRs
@@ -48,6 +52,9 @@ for rr = 1:nROIs
     end
      
 end
+
+%% Export results
+save('VSMfromROI-NLREG-OutputMatrix.m')
 
 %% Stats
 
