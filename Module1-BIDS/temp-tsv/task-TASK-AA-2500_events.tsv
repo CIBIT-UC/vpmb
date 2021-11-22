@@ -1,0 +1,10 @@
+Condition	Onset	Duration
+Discard	0	15
+Static	15	30
+Ambiguous	45	120
+MAE	165	15
+Static	180	30
+Ambiguous	210	120
+MAE	330	15
+Static	345	30
+Discard	375	15
