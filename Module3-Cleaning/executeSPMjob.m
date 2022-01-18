@@ -39,9 +39,6 @@ tr = str2double(tr);
 taskProperName = strsplit(taskName,'_');
 taskProperName = taskProperName{1};
 
-%
-
-
 spm('defaults', 'FMRI');
 
 %% Iterate
@@ -146,7 +143,8 @@ for sp = 1:length(spaces)
     spm_jobman('run', matlabbatch);
     
     % Delete temporary files
-    rmdir(fullfile(spmFolder,['3d_' taskName '_' spaces{sp}]),'s')
+    %rmdir(fullfile(spmFolder,['3d_' taskName '_' spaces{sp}]),'s')
+    delete(fullfile(spmFolder,['3d_' taskName '_' spaces{sp}],'sub-*.nii'))
     delete(fullfile(outputFolder,[subjectID '_' taskName '_space-' spaces{sp} '_desc-pnm_bold.nii']))
     delete(fullfile(outputFolder,[subjectID '_' taskName '_space-' spaces{sp} '_desc-pnmSS_bold.nii']))
     
