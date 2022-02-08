@@ -30,19 +30,19 @@ for rr = 1:nRuns
     
     [ cond_names , intervalsPRT ,~,~,~, blockDur, blockNum ] = readProtocol( fullfile(prtFolder, prtList{rr}) , TRList(rr) );
     
-    Condition = {};
-    Onset = [];
-    Duration = [];
+    trial_type = {};
+    onset = [];
+    duration = [];
     for cc = 1:length(cond_names)
-        Condition = [Condition ; repmat({cond_names(cc)},blockNum(cc),1)];
-        Onset = [Onset ; intervalsPRT.(cond_names{cc})(:,1).*TRList(rr)-TRList(rr)];
-        Duration = [Duration ; repmat(blockDur(cc).*TRList(rr),blockNum(cc),1)];
+        trial_type = [trial_type ; repmat({cond_names(cc)},blockNum(cc),1)];
+        onset = [onset ; intervalsPRT.(cond_names{cc})(:,1).*TRList(rr)-TRList(rr)];
+        duration = [duration ; repmat(blockDur(cc).*TRList(rr),blockNum(cc),1)];
     end
-    [Onset,idx] = sort(Onset);
-    Condition = Condition(idx);
-    Duration = Duration(idx);
+    [onset,idx] = sort(onset);
+    trial_type = trial_type(idx);
+    duration = duration(idx);
     
-    T = table(Condition,Onset,Duration);
+    T = table(onset,duration,trial_type);
     
     export_file = fullfile(tsvFolder,...
         sprintf('task-%s_events.txt',prtList{rr}(1:end-4)));
