@@ -1,6 +1,10 @@
-
+% this script performs confound regression, spatial smoothing, high-pass
+% filtering and GLMs for all tasks.
+%
 % Requires:
-% - BIDS directory
+% - data in BIDS directory
+% - FSL 6
+% - SPM12
 
 clear,clc
 

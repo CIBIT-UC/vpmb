@@ -24,7 +24,7 @@ for rr = 1:nROIs
         
         % Resample roi mask to VSM resolution
         cmd = sprintf('flirt -in %s -ref %s -applyxfm -usesqform -out %s',...
-            fullfile(roiFolder,roiList{rr}),...
+            fullfile(roiFolder,[roiList{rr} '.nii.gz']),...
             fullfile(vsmFolder,'sub-all_task-all_acq-all_space-MNI_warp_brain_mean.nii.gz'),...
             fullfile(roiFolder,[roiList{rr} '_space-VSM']) );
 
@@ -71,7 +71,7 @@ for rr = 1:nROIs
     subplot(2,5,rr)
     
     hold on
-    notBoxPlot(squeeze(outputMatrix(rr,2:end,:))')
+    notBoxPlot(squeeze(outputMatrix(rr,2:end,:))','sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
     line([0 5],[0 0],'linestyle',':')
     hold off
     

@@ -190,8 +190,8 @@ figure
 
 subplot(1,3,1)
 hold on
-notBoxPlot([COST.corrratio.reshape0500,COST.corrratio.reshape0750,COST.corrratio.reshape2500],[1 2 4],'subColors',true,'nSubjects',nSubjects,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.8 0.4])
-notBoxPlot(COST.corrratio.reshape1000,3,'subColors',true,'nSubjects',nSubjects,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.8 0.4])
+notBoxPlot([COST.corrratio.reshape0500,COST.corrratio.reshape0750,COST.corrratio.reshape2500],[1 2 4],'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
+notBoxPlot(COST.corrratio.reshape1000,3,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
 ylim([0 0.3])
 xticks(1:4)
 xticklabels({'TR0500','TR0750','TR1000','TR2500'})
@@ -199,8 +199,8 @@ title('Correlation ratio - NLREG')
 
 subplot(1,3,2)
 hold on
-notBoxPlot([COST.normmi.reshape0500,COST.normmi.reshape0750,COST.normmi.reshape2500],[1 2 4],'subColors',true,'nSubjects',nSubjects,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.8 0.4])
-notBoxPlot(COST.normmi.reshape1000,3,'subColors',true,'nSubjects',nSubjects,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.8 0.4])
+notBoxPlot([COST.normmi.reshape0500,COST.normmi.reshape0750,COST.normmi.reshape2500],[1 2 4],'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
+notBoxPlot(COST.normmi.reshape1000,3,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
 ylim([-1.3 -1.2])
 xticks(1:4)
 xticklabels({'TR0500','TR0750','TR1000','TR2500'})
@@ -208,8 +208,39 @@ title('Normalized mutual information - NLREG')
 
 subplot(1,3,3)
 hold on
-notBoxPlot([COST.bbr.reshape0500,COST.bbr.reshape0750,COST.bbr.reshape2500],[1 2 4],'subColors',true,'nSubjects',nSubjects,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.8 0.4])
-notBoxPlot(COST.bbr.reshape1000,3,'subColors',true,'nSubjects',nSubjects,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.8 0.4])
+notBoxPlot([COST.bbr.reshape0500,COST.bbr.reshape0750,COST.bbr.reshape2500],[1 2 4],'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
+notBoxPlot(COST.bbr.reshape1000,3,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
+ylim([0.25 0.75])
+xticks(1:4)
+xticklabels({'TR0500','TR0750','TR1000','TR2500'})
+title('BBR - NLREG')
+
+%% plots with subjects color coded
+
+figure
+
+subplot(1,3,1)
+hold on
+notBoxPlot([COST.corrratio.reshape0500,COST.corrratio.reshape0750,COST.corrratio.reshape2500],[1 2 4],'subColors',true,'nSubjects',nSubjects,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
+notBoxPlot(COST.corrratio.reshape1000,3,'subColors',true,'nSubjects',nSubjects,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
+ylim([0 0.3])
+xticks(1:4)
+xticklabels({'TR0500','TR0750','TR1000','TR2500'})
+title('Correlation ratio - NLREG')
+
+subplot(1,3,2)
+hold on
+notBoxPlot([COST.normmi.reshape0500,COST.normmi.reshape0750,COST.normmi.reshape2500],[1 2 4],'subColors',true,'nSubjects',nSubjects,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
+notBoxPlot(COST.normmi.reshape1000,3,'subColors',true,'nSubjects',nSubjects,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
+ylim([-1.3 -1.2])
+xticks(1:4)
+xticklabels({'TR0500','TR0750','TR1000','TR2500'})
+title('Normalized mutual information - NLREG')
+
+subplot(1,3,3)
+hold on
+notBoxPlot([COST.bbr.reshape0500,COST.bbr.reshape0750,COST.bbr.reshape2500],[1 2 4],'subColors',true,'nSubjects',nSubjects,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
+notBoxPlot(COST.bbr.reshape1000,3,'subColors',true,'nSubjects',nSubjects,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
 ylim([0.25 0.75])
 xticks(1:4)
 xticklabels({'TR0500','TR0750','TR1000','TR2500'})
