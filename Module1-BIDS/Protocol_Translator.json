@@ -1,0 +1,526 @@
+{
+
+  "t1_mprage_sag_p2_iso":[
+        "anat",
+        "T1w",
+        "UNASSIGNED"
+    ],
+
+
+
+
+    "gre_field_mapping":[
+        "fmap",
+        "ce-gre",
+        ["task-loc_acq-1000_run-1_bold",
+        "task-AA_acq-0500_run-1_bold",
+        "task-AA_acq-0750_run-1_bold",
+        "task-AA_acq-1000_run-1_bold",
+        "task-AA_acq-2500_run-1_bold",
+        "task-UA_acq-0500_run-1_bold",
+        "task-UA_acq-0750_run-1_bold",
+        "task-UA_acq-1000_run-1_bold",
+        "task-UA_acq-2500_run-1_bold"]
+    ],
+
+
+
+
+    "tfMRI_LOC":[
+        "func",
+        "task-loc_acq-1000_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "tfMRI_LOC_SBRef":[
+        "func",
+        "task-loc_acq-1000_run-1_sbref",
+        "UNASSIGNED"
+    ],
+    "LOC_SMS3_TR1000":[
+        "func",
+        "task-loc_acq-1000_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "LOC_SMS3_TR1000_SBRef":[
+        "func",
+        "task-loc_acq-1000_run-1_sbref",
+        "UNASSIGNED"
+    ],
+
+    "SpinEchoFieldMap_AP_LOC":[
+        "fmap",
+        "acq-1000_ce-spe_dir-AP_epi",
+        ["task-loc_acq-1000_bold"]
+    ],
+    "SpinEchoFieldMap_PA_LOC":[
+        "fmap",
+        "acq-1000_ce-spe_dir-PA_epi",
+        ["task-loc_acq-1000_bold"]
+    ],
+
+    "EPIFieldMap_AP_LOC":[
+        "fmap",
+        "acq-1000_ce-epi_dir-AP_epi",
+        ["task-loc_acq-1000_bold"]
+    ],
+    "EPIFieldMap_PA_LOC":[
+        "fmap",
+        "acq-1000_ce-epi_dir-PA_epi",
+        ["task-loc_acq-1000_bold"]
+    ],
+
+
+
+
+    "tfMRI_RunA_TR0500":[
+        "func",
+        "task-AA_acq-0500_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunUA_TR500":[
+        "func",
+        "task-UA_acq-0500_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunA_TR0500_SBRef":[
+        "func",
+        "task-AA_acq-0500_sbref",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunUA_TR500_SBRef":[
+        "func",
+        "task-UA_acq-0500_sbref",
+        "UNASSIGNED"
+    ],
+
+    "tfMRI_RunA_TR0750":[
+        "func",
+        "task-AA_acq-0750_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunUA_TR0750":[
+        "func",
+        "task-UA_acq-0750_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunA_TR0750_SBRef":[
+        "func",
+        "task-AA_acq-0750_sbref",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunUA_TR0750_SBRef":[
+        "func",
+        "task-UA_acq-0750_sbref",
+        "UNASSIGNED"
+    ],
+
+    "tfMRI_RunA_TR1000":[
+        "func",
+        "task-AA_acq-1000_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunUA_TR1000":[
+        "func",
+        "task-UA_acq-1000_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunA_TR1000_SBRef":[
+        "func",
+        "task-AA_acq-1000_sbref",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunUA_TR1000_SBRef":[
+        "func",
+        "task-UA_acq-1000_sbref",
+        "UNASSIGNED"
+    ],
+
+    "tfMRI_RunA_TR2500":[
+        "func",
+        "task-AA_acq-2500_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunUA_TR2500":[
+        "func",
+        "task-UA_acq-2500_run-1_bold",
+        "UNASSIGNED"
+    ],
+
+
+
+
+    "SpinEchoFieldMap_AP_TR0500":[
+        "fmap",
+        "acq-0500_ce-spe_dir-AP_epi",
+        ["task-AA_acq-0500_run-1_bold","task-UA_acq-0500_run-1_bold"]
+    ],
+    "SpinEchoFieldMap_PA_TR0500":[
+        "fmap",
+        "acq-0500_ce-spe_dir-PA_epi",
+        ["task-AA_acq-0500_run-1_bold","task-UA_acq-0500_run-1_bold"]
+    ],
+    "SpinEchoFieldMap_AP_TR0750":[
+        "fmap",
+        "acq-0750_ce-spe_dir-AP_epi",
+        ["task-AA_acq-0750_run-1_bold","task-UA_acq-0750_run-1_bold"]
+    ],
+    "SpinEchoFieldMap_PA_TR0750":[
+        "fmap",
+        "acq-0750_ce-spe_dir-PA_epi",
+        ["task-AA_acq-0750_run-1_bold","task-UA_acq-0750_run-1_bold"]
+    ],
+    "SpinEchoFieldMap_AP_TR1000":[
+        "fmap",
+        "acq-1000_ce-spe_dir-AP_epi",
+        ["task-AA_acq-1000_run-1_bold","task-UA_acq-1000_run-1_bold","task-loc_acq-1000_run-1_bold"]
+    ],
+    "SpinEchoFieldMap_PA_TR1000":[
+        "fmap",
+        "acq-1000_ce-spe_dir-PA_epi",
+        ["task-AA_acq-1000_run-1_bold","task-UA_acq-1000_run-1_bold","task-loc_acq-1000_run-1_bold"]
+    ],
+    "SpinEchoFieldMap_AP_TR2500":[
+        "fmap",
+        "acq-2500_ce-spe_dir-AP_epi",
+        ["task-AA_acq-2500_run-1_bold","task-UA_acq-2500_run-1_bold"]
+    ],
+    "SpinEchoFieldMap_PA_TR2500":[
+        "fmap",
+        "acq-2500_ce-spe_dir-PA_epi",
+        ["task-AA_acq-2500_run-1_bold","task-UA_acq-2500_run-1_bold"]
+    ],
+
+
+
+
+    "EPIFieldMap_AP_TR0500":[
+        "fmap",
+        "acq-0500_ce-epi_dir-AP_epi",
+        ["task-AA_acq-0500_run-1_bold","task-UA_acq-0500_run-1_bold"]
+    ],
+    "EPIFieldMap_PA_TR0500":[
+        "fmap",
+        "acq-0500_ce-epi_dir-PA_epi",
+        ["task-AA_acq-0500_run-1_bold","task-UA_acq-0500_run-1_bold"]
+    ],
+    "EPIFieldMap_AP_TR0750":[
+        "fmap",
+        "acq-0750_ce-epi_dir-AP_epi",
+        ["task-AA_acq-0750_run-1_bold","task-UA_acq-0750_run-1_bold"]
+    ],
+    "EPIFieldMap_PA_TR0750":[
+        "fmap",
+        "acq-0750_ce-epi_dir-PA_epi",
+        ["task-AA_acq-0750_run-1_bold","task-UA_acq-0750_run-1_bold"]
+    ],
+    "EPIFieldMap_AP_TR1000":[
+        "fmap",
+        "acq-1000_ce-epi_dir-AP_epi",
+        ["task-AA_acq-1000_run-1_bold","task-UA_acq-1000_run-1_bold","task-loc_acq-1000_run-1_bold"]
+    ],
+    "EPIFieldMap_PA_TR1000":[
+        "fmap",
+        "acq-1000_ce-epi_dir-PA_epi",
+        ["task-AA_acq-1000_run-1_bold","task-UA_acq-1000_run-1_bold","task-loc_acq-1000_run-1_bold"]
+    ],
+    "EPIFieldMap_AP_TR2500":[
+        "fmap",
+        "acq-2500_ce-epi_dir-AP_epi",
+        ["task-AA_acq-2500_run-1_bold","task-UA_acq-2500_run-1_bold"]
+    ],
+    "EPIFieldMap_PA_TR2500":[
+        "fmap",
+        "acq-2500_ce-epi_dir-PA_epi",
+        ["task-AA_acq-2500_run-1_bold","task-UA_acq-2500_run-1_bold"]
+    ],
+
+
+
+
+    "RunA_SMS6_TR500":[
+        "func",
+        "task-AA_acq-0500_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "RunUA_SMS6_TR500":[
+        "func",
+        "task-UA_acq-0500_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "RunA_SMS4_TR750":[
+        "func",
+        "task-AA_acq-0750_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "RunUA_SMS4_TR750":[
+        "func",
+        "task-UA_acq-0750_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "RunA_SMS3_TR1000":[
+        "func",
+        "task-AA_acq-1000_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "RunUA_SMS3_TR1000":[
+        "func",
+        "task-UA_acq-1000_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "RunA_SMS1_TR2500":[
+        "func",
+        "task-AA_acq-2500_run-1_bold",
+        "UNASSIGNED"
+    ],
+    "RunUA_SMS1_TR2500":[
+        "func",
+        "task-UA_acq-2500_run-1_bold",
+        "UNASSIGNED"
+    ],
+
+    "RunA_SMS6_TR500_SBRef":[
+        "func",
+        "task-AA_acq-0500_run-1_sbref",
+        "UNASSIGNED"
+    ],
+    "RunUA_SMS6_TR500_SBRef":[
+        "func",
+        "task-UA_acq-0500_run-1_sbref",
+        "UNASSIGNED"
+    ],
+    "RunA_SMS4_TR750_SBRef":[
+        "func",
+        "task-AA_acq-0750_run-1_sbref",
+        "UNASSIGNED"
+    ],
+    "RunUA_SMS4_TR750_SBRef":[
+        "func",
+        "task-UA_acq-0750_run-1_sbref",
+        "UNASSIGNED"
+    ],
+    "RunA_SMS3_TR1000_SBRef":[
+        "func",
+        "task-AA_acq-1000_run-1_sbref",
+        "UNASSIGNED"
+    ],
+    "RunUA_SMS3_TR1000_SBRef":[
+        "func",
+        "task-UA_acq-1000_run-1_sbref",
+        "UNASSIGNED"
+    ],
+
+
+
+
+    "tfMRI_RunA_AP_SMS6_TR0500":[
+        "fmap",
+        "acq-0500_ce-epi_dir-AP_epi",
+        ["task-AA_acq-0500_run-1_bold","task-UA_acq-0500_run-1_bold"]
+    ],
+    "tfMRI_RunA_PA_SMS6_TR0500":[
+        "fmap",
+        "acq-0500_ce-epi_dir-PA_epi",
+        ["task-AA_acq-0500_run-1_bold","task-UA_acq-0500_run-1_bold"]
+    ],
+    "tfMRI_RunA_AP_SMS4_TR0750":[
+        "fmap",
+        "acq-0750_ce-epi_dir-AP_epi",
+        ["task-AA_acq-0750_run-1_bold","task-UA_acq-0750_run-1_bold"]
+    ],
+    "tfMRI_RunA_PA_SMS4_TR0750":[
+        "fmap",
+        "acq-0750_ce-epi_dir-PA_epi",
+        ["task-AA_acq-0750_run-1_bold","task-UA_acq-0750_run-1_bold"]
+    ],
+    "tfMRI_RunA_AP_SMS6_TR0750":[
+        "fmap",
+        "acq-0750_ce-epi_dir-AP_epi",
+        ["task-AA_acq-0750_run-1_bold","task-UA_acq-0750_run-1_bold"]
+    ],
+    "tfMRI_RunA_PA_SMS6_TR0750":[
+        "fmap",
+        "acq-0750_ce-epi_dir-PA_epi",
+        ["task-AA_acq-0750_run-1_bold","task-UA_acq-0750_run-1_bold"]
+    ],
+    "tfMRI_RunA_AP_SMS3_TR1000":[
+        "fmap",
+        "acq-1000_ce-epi_dir-AP_epi",
+        ["task-AA_acq-1000_run-1_bold","task-UA_acq-1000_run-1_bold","task-loc_acq-1000_run-1_bold"]
+    ],
+    "tfMRI_RunA_PA_SMS3_TR1000":[
+        "fmap",
+        "acq-1000_ce-epi_dir-PA_epi",
+        ["task-AA_acq-1000_run-1_bold","task-UA_acq-1000_run-1_bold","task-loc_acq-1000_run-1_bold"]
+    ],
+    "tfMRI_RunA_AP_SMS6_TR1000":[
+        "fmap",
+        "acq-1000_ce-epi_dir-AP_epi",
+        ["task-AA_acq-1000_run-1_bold","task-UA_acq-1000_run-1_bold","task-loc_acq-1000_run-1_bold"]
+    ],
+    "tfMRI_RunA_PA_SMS6_TR1000":[
+        "fmap",
+        "acq-1000_ce-epi_dir-PA_epi",
+        ["task-AA_acq-1000_run-1_bold","task-UA_acq-1000_run-1_bold","task-loc_acq-1000_run-1_bold"]
+    ],
+    "tfMRI_RunA_AP_SMS1_TR2500":[
+        "fmap",
+        "acq-2500_ce-epi_dir-AP_epi",
+        ["task-AA_acq-2500_run-1_bold","task-UA_acq-2500_run-1_bold"]
+    ],
+    "tfMRI_RunA_PA_SMS1_TR2500":[
+        "fmap",
+        "acq-2500_ce-epi_dir-PA_epi",
+        ["task-AA_acq-2500_run-1_bold","task-UA_acq-2500_run-1_bold"]
+    ],
+    "tfMRI_RunA_AP_SMS6_TR2500":[
+        "fmap",
+        "acq-2500_ce-epi_dir-AP_epi",
+        ["task-AA_acq-2500_run-1_bold","task-UA_acq-2500_run-1_bold"]
+    ],
+    "tfMRI_RunA_PA_SMS6_TR2500":[
+        "fmap",
+        "acq-2500_ce-epi_dir-PA_epi",
+        ["task-AA_acq-2500_run-1_bold","task-UA_acq-2500_run-1_bold"]
+    ],
+
+    "SpinEchoFieldMap_AP_0.51":[
+        "fmap",
+        "acq-0500_ce-spe_dir-AP_epi",
+        ["task-AA_acq-0500_run-1_bold","task-UA_acq-0500_run-1_bold"]
+    ],
+    "SpinEchoFieldMap_PA_0.51":[
+        "fmap",
+        "acq-0500_ce-spe_dir-PA_epi",
+        ["task-AA_acq-0500_run-1_bold","task-UA_acq-0500_run-1_bold"]
+    ],
+    "SpinEchoFieldMap_AP_0.49":[
+        "fmap",
+        "acq-1000_ce-spe_dir-AP_epi",
+        ["task-AA_acq-1000_run-1_bold","task-UA_acq-1000_run-1_bold","task-loc_acq-1000_run-1_bold","task-AA_acq-0750_run-1_bold","task-UA_acq-0750_run-1_bold"]
+    ],
+    "SpinEchoFieldMap_PA_0.49":[
+        "fmap",
+        "acq-1000_ce-spe_dir-PA_epi",
+        ["task-AA_acq-1000_run-1_bold","task-UA_acq-1000_run-1_bold","task-loc_acq-1000_run-1_bold","task-AA_acq-0750_run-1_bold","task-UA_acq-0750_run-1_bold"]
+    ],
+    "SpinEchoFieldMap_AP_0.59":[
+        "fmap",
+        "acq-2500_ce-spe_dir-AP_epi",
+        ["task-AA_acq-2500_run-1_bold","task-UA_acq-2500_run-1_bold"]
+    ],
+    "SpinEchoFieldMap_PA_0.59":[
+        "fmap",
+        "acq-2500_ce-spe_dir-PA_epi",
+        ["task-AA_acq-2500_run-1_bold","task-UA_acq-2500_run-1_bold"]
+    ],
+
+
+
+
+
+
+    "tfMRI_RunA_AP_SMS4_TR0750_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunA_PA_SMS4_TR0750_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunA_PA_SMS6_TR0500_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunA_PA_SMS3_TR1000_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunA_AP_SMS6_TR0500_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunA_AP_SMS3_TR1000_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunA_AP_SMS6_TR1000_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunA_PA_SMS6_TR1000_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunA_AP_SMS6_TR0750_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "tfMRI_RunA_PA_SMS6_TR0750_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "EPIFieldMap_AP_LOC_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "EPIFieldMap_PA_LOC_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "EPIFieldMap_AP_TR0500_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "EPIFieldMap_PA_TR0500_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "EPIFieldMap_AP_TR0750_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "EPIFieldMap_PA_TR0750_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "EPIFieldMap_AP_TR1000_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ],
+    "EPIFieldMap_PA_TR1000_SBRef":[
+        "EXCLUDE_BIDS_Directory",
+        "EXCLUDE_BIDS_Name",
+        "UNASSIGNED"
+    ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
