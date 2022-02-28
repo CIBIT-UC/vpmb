@@ -13,7 +13,7 @@ clear aux
 nSubjects = length(subjectList);
 
 %% Task List
-taskList = {'task-loc_acq-1000_run-01','task-AA_acq-0500_run-01','task-AA_acq-0750_run-01','task-AA_acq-1000_run-01','task-AA_acq-2500_run-01','task-UA_acq-0500_run-01','task-UA_acq-0750_run-01','task-UA_acq-1000_run-01','task-UA_acq-2500_run-01'};
+taskList = {'task-loc_acq-1000_run-1','task-AA_acq-0500_run-1','task-AA_acq-0750_run-1','task-AA_acq-1000_run-1','task-AA_acq-2500_run-1','task-UA_acq-0500_run-1','task-UA_acq-0750_run-1','task-UA_acq-1000_run-1','task-UA_acq-2500_run-1'};
 
 %% PRT List
 % In this case the protocol is the same for all participants
