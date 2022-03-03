@@ -1,0 +1,30 @@
+[01;32malexandresayal@sim01[00m:[01;34m~/GitRepos/vpmb/Module2-fMRIPrep[00m$ docker run -ti --rm \
+>     -v /DATAPOOL/VPMB/BIDS-VPMB-SPE:/data:ro \
+>     -v /DATAPOOL/VPMB/BIDS-VPMB-SPE/derivatives:/out \
+>     -v /SCRATCH/users/alexandresayal/fmriprep-work_VPMB-SPE:/work \
+>     -v /SCRATCH/software/freesurfer/license.txt:/license \
+>     nipreps/fmriprep:21.0.1 \
+>     /data /out/fmriprep \
+>     participant \
+>     -w /work \
+>     --fs-license-file /license \
+>     --nprocs 16 \
+>     --stop-on-first-crash \
+>     --fs-no-reconall \
+>     --output-spaces MNI152NLin2009cAsym T1w \
+>     --participant-label 06
+bids-validator@1.8.0
+
+	[33m1: [WARN] The recommended file /README is very small. Please consider expanding it with additional information about the dataset. (code: 213 - README_FILE_SMALL)[39m
+
+[36m	Please visit https://neurostars.org/search?q=README_FILE_SMALL for existing conversations about this issue.[39m
+
+
+        [34m[4mSummary:[24m[39m                   [34m[4mAvailable Tasks:[24m[39m        [34m[4mAvailable Modalities:[24m[39m 
+        1240 Files, 21.96GB        AA                      MRI                   
+        15 - Subjects              UA                                            
+        1 - Session                loc                                           
+
+
+[36m	If you have any questions, please post on https://neurostars.org/tags/bids.[39m
+
