@@ -58,7 +58,11 @@ addpath('/SCRATCH/software/toolboxes/nifti-tools')
 addpath(genpath('/SCRATCH/software/toolboxes/neuroelf-matlab/'))
 
 %% Folders
-bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NONE';
+%bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NONE';
+%bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NLREG';
+%bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-EPI';
+%bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-SPE';
+bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-GRE';
 derivFolder    = fullfile(bidsFolder,'derivatives');
 fmriPrepFolder = fullfile(bidsFolder,'derivatives','fmriprep');
 codeFolder     = pwd;
@@ -77,6 +81,17 @@ nTasks = length(taskList);
 
 %% Error matrix - flag matrix for errors during execution
 errorMatrix = zeros(length(subjectList),length(taskList));
+
+%% Checks
+% FSL
+if system('flirt -version')
+    error('FSL is not in path!');
+end
+
+% PhysIO version
+if ~strcmp(tapas_physio_version,'R2021a-v8.0.1')
+    error('Double-check PhysIO version in path.')
+end
 
 %% MATLAB Thread management
 LASTN = maxNumCompThreads(20);
