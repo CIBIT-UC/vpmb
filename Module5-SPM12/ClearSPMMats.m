@@ -2,6 +2,10 @@ clear,clc
 
 %% Folders
 bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NONE';
+%bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NLREG';
+%bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-EPI';
+%bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-SPE';
+%bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-GRE';
 derivFolder    = fullfile(bidsFolder,'derivatives');
 
 %% Extract Subject List from BIDS
@@ -28,9 +32,11 @@ for ss = 1:length(subjectList)
     
     for tt = 1:nTasks
         
-        %delete(fullfile(spmFolder,['model_' taskList{tt} '_T1w'],'SPM.mat'))
-        rmdir(fullfile(spmFolder,['model_' taskList{tt} '_T1w']), 's')
-        rmdir(fullfile(spmFolder,['3d_' taskList{tt} '_T1w']), 's')
+        delete(fullfile(spmFolder,['model_' taskList{tt} '_T1w'],'SPM.mat'))
+        %rmdir(fullfile(spmFolder,['model_' taskList{tt} '_T1w']), 's')
+        %rmdir(fullfile(spmFolder,['3d_' taskList{tt} '_T1w']), 's')
+        
+        delete(fullfile(spmFolder,['model_' taskList{tt} '_MNI152NLin2009cAsym'],'SPM.mat'))
             
     end
 
