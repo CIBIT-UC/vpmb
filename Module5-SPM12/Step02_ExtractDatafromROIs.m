@@ -37,8 +37,8 @@ addpath('/SCRATCH/software/toolboxes/spm12')
 baseFolder = '/DATAPOOL/VPMB';
 
 % Distortion correction method (affects folders)
-% Options: NLREG
-sdcMethod = 'NLREG';
+% Options: NLREG, NONE, EPI, SPE, GRE
+sdcMethod = 'NONE';
 
 %% Folders
 bidsFolder      = fullfile(baseFolder,['BIDS-VPMB-' sdcMethod]);
@@ -116,6 +116,16 @@ for rr = 1:nROIs
         newROIName = [subjectList{ss} '_MNI152NLin2009cAsym-reslice_' roiList{rr} '.nii'];
         movefile(fullfile(roiFolder,newROIName),subjectOutputROIFolder)
         
+        
+        
+        %% TODO
+        % Adjust sphere acording to the GLM?!
+        %I think the risk of double dipping is too big, since we only have
+        %two runs for each TR and the localizer does not include all
+        %regions - this adds to the point that some of these regions will
+        %not show up on any contrast (e.g. NAcc)
+        
+        %%
         % Iterate on the tasks
         for tt = 1:nTasks
             
