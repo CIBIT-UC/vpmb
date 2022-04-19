@@ -58,11 +58,11 @@ addpath('/SCRATCH/software/toolboxes/nifti-tools')
 addpath(genpath('/SCRATCH/software/toolboxes/neuroelf-matlab/'))
 
 %% Folders
-%bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NONE';
+bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NONE';
 %bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NLREG';
 %bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-EPI';
 %bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-SPE';
-bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-GRE';
+%bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-GRE';
 derivFolder    = fullfile(bidsFolder,'derivatives');
 fmriPrepFolder = fullfile(bidsFolder,'derivatives','fmriprep');
 codeFolder     = pwd;
@@ -94,7 +94,7 @@ if ~strcmp(tapas_physio_version,'R2021a-v8.0.1')
 end
 
 %% MATLAB Thread management
-LASTN = maxNumCompThreads(20);
+LASTN = maxNumCompThreads(18);
 
 %% Iteration on the subjects (in parallel)
 parfor ss = 1:length(subjectList)
