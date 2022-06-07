@@ -59,7 +59,7 @@ for ss = 1:nSubjects
             funcImage = fullfile(d(1).folder,d(1).name);
             clear d
         else
-           error('more than one image here') 
+           error('more than one image here OR no image') 
         end
 
         %% T1w image
@@ -77,7 +77,7 @@ for ss = 1:nSubjects
             affineMatrix = fullfile(d(1).folder,d(1).name);
             clear d
         else
-           error('more than one image there') 
+           error('more than one image there OR no image') 
         end
                 
         %% Estimate cost function 1 - correlation ratio
@@ -122,7 +122,7 @@ save(['CostFunctionData_' sdcMethod '.mat'],'COST','workFolder','bidsFolder')
 %% stats Correlation Ratio
 
 % global mean
-COST.corrratio.globalmean = mean(mean(COST.corrratio.data));
+COST.corrratio.globalmean = mean(nanmean(COST.corrratio.data));
 
 % reshape per TR
 COST.corrratio.reshape0500 = reshape(COST.corrratio.data(:,[1 5]),nSubjects*2,1);
@@ -131,21 +131,21 @@ COST.corrratio.reshape1000 = reshape(COST.corrratio.data(:,[3 7 9]),nSubjects*3,
 COST.corrratio.reshape2500 = reshape(COST.corrratio.data(:,[4 8]),nSubjects*2,1);
 
 % mean per TR
-COST.corrratio.mean0500 = mean(COST.corrratio.reshape0500);
-COST.corrratio.mean0750 = mean(COST.corrratio.reshape0750);
-COST.corrratio.mean1000 = mean(COST.corrratio.reshape1000);
-COST.corrratio.mean2500 = mean(COST.corrratio.reshape2500);
+COST.corrratio.mean0500 = nanmean(COST.corrratio.reshape0500);
+COST.corrratio.mean0750 = nanmean(COST.corrratio.reshape0750);
+COST.corrratio.mean1000 = nanmean(COST.corrratio.reshape1000);
+COST.corrratio.mean2500 = nanmean(COST.corrratio.reshape2500);
 
 % std per TR
-COST.corrratio.std0500 = std(COST.corrratio.reshape0500);
-COST.corrratio.std0750 = std(COST.corrratio.reshape0750);
-COST.corrratio.std1000 = std(COST.corrratio.reshape1000);
-COST.corrratio.std2500 = std(COST.corrratio.reshape2500);
+COST.corrratio.std0500 = nanstd(COST.corrratio.reshape0500);
+COST.corrratio.std0750 = nanstd(COST.corrratio.reshape0750);
+COST.corrratio.std1000 = nanstd(COST.corrratio.reshape1000);
+COST.corrratio.std2500 = nanstd(COST.corrratio.reshape2500);
 
 %% stats Normalized MI
 
 % global mean
-COST.normmi.globalmean = mean(mean(COST.normmi.data));
+COST.normmi.globalmean = mean(nanmean(COST.normmi.data));
 
 % reshape per TR
 COST.normmi.reshape0500 = reshape(COST.normmi.data(:,[1 5]),nSubjects*2,1);
@@ -154,21 +154,21 @@ COST.normmi.reshape1000 = reshape(COST.normmi.data(:,[3 7 9]),nSubjects*3,1);
 COST.normmi.reshape2500 = reshape(COST.normmi.data(:,[4 8]),nSubjects*2,1);
 
 % mean per TR
-COST.normmi.mean0500 = mean(COST.normmi.reshape0500);
-COST.normmi.mean0750 = mean(COST.normmi.reshape0750);
-COST.normmi.mean1000 = mean(COST.normmi.reshape1000);
-COST.normmi.mean2500 = mean(COST.normmi.reshape2500);
+COST.normmi.mean0500 = nanmean(COST.normmi.reshape0500);
+COST.normmi.mean0750 = nanmean(COST.normmi.reshape0750);
+COST.normmi.mean1000 = nanmean(COST.normmi.reshape1000);
+COST.normmi.mean2500 = nanmean(COST.normmi.reshape2500);
 
 % std per TR
-COST.normmi.std0500 = std(COST.normmi.reshape0500);
-COST.normmi.std0750 = std(COST.normmi.reshape0750);
-COST.normmi.std1000 = std(COST.normmi.reshape1000);
-COST.normmi.std2500 = std(COST.normmi.reshape2500);
+COST.normmi.std0500 = nanstd(COST.normmi.reshape0500);
+COST.normmi.std0750 = nanstd(COST.normmi.reshape0750);
+COST.normmi.std1000 = nanstd(COST.normmi.reshape1000);
+COST.normmi.std2500 = nanstd(COST.normmi.reshape2500);
 
 %% stats BBR
 
 % global mean
-COST.bbr.globalmean = mean(mean(COST.bbr.data));
+COST.bbr.globalmean = mean(nanmean(COST.bbr.data));
 
 % reshape per TR
 COST.bbr.reshape0500 = reshape(COST.bbr.data(:,[1 5]),nSubjects*2,1);
@@ -177,16 +177,16 @@ COST.bbr.reshape1000 = reshape(COST.bbr.data(:,[3 7 9]),nSubjects*3,1);
 COST.bbr.reshape2500 = reshape(COST.bbr.data(:,[4 8]),nSubjects*2,1);
 
 % mean per TR
-COST.bbr.mean0500 = mean(COST.bbr.reshape0500);
-COST.bbr.mean0750 = mean(COST.bbr.reshape0750);
-COST.bbr.mean1000 = mean(COST.bbr.reshape1000);
-COST.bbr.mean2500 = mean(COST.bbr.reshape2500);
+COST.bbr.mean0500 = nanmean(COST.bbr.reshape0500);
+COST.bbr.mean0750 = nanmean(COST.bbr.reshape0750);
+COST.bbr.mean1000 = nanmean(COST.bbr.reshape1000);
+COST.bbr.mean2500 = nanmean(COST.bbr.reshape2500);
 
 % std per TR
-COST.bbr.std0500 = std(COST.bbr.reshape0500);
-COST.bbr.std0750 = std(COST.bbr.reshape0750);
-COST.bbr.std1000 = std(COST.bbr.reshape1000);
-COST.bbr.std2500 = std(COST.bbr.reshape2500);
+COST.bbr.std0500 = nanstd(COST.bbr.reshape0500);
+COST.bbr.std0750 = nanstd(COST.bbr.reshape0750);
+COST.bbr.std1000 = nanstd(COST.bbr.reshape1000);
+COST.bbr.std2500 = nanstd(COST.bbr.reshape2500);
 
 %% Save COST
 save(['CostFunctionData_' sdcMethod '.mat'],'COST','workFolder','bidsFolder')
