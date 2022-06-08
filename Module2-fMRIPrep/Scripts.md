@@ -1,7 +1,7 @@
 # FIELMAP NONE
 
 ## Open screen
-screen -L -Logfile /DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module2-fMRIPrep/logs/vpmb-none_fmriprep_sub-01.txt -S vpmb-none-01
+screen -L -Logfile /DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module2-fMRIPrep/logs/vpmb-none_fmriprep_sub-23.txt -S vpmb-none-23
 
 ## Start
 docker run -ti --rm \
@@ -15,10 +15,11 @@ docker run -ti --rm \
     -w /work \
     --fs-license-file /license \
     --nprocs 16 \
+    --low-mem \
     --stop-on-first-crash \
     --fs-no-reconall \
     --output-spaces MNI152NLin2009cAsym T1w \
-    --participant-label 01
+    --participant-label 23
 
 ## Detach screen
 Ctrl-A e depois D
@@ -26,7 +27,7 @@ Ctrl-A e depois D
 # FIELMAP SPE
 
 ## Open screen
-screen -L -Logfile /DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module2-fMRIPrep/logs/vpmb-spe_fmriprep_sub-01.txt -S vpmb-spe-01
+screen -L -Logfile /DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module2-fMRIPrep/logs/vpmb-spe_fmriprep_sub-2223.txt -S vpmb-spe-2223
 
 ## Start
 docker run -ti --rm \
@@ -40,10 +41,11 @@ docker run -ti --rm \
     -w /work \
     --fs-license-file /license \
     --nprocs 16 \
+    --low-mem \
     --stop-on-first-crash \
     --fs-no-reconall \
     --output-spaces MNI152NLin2009cAsym T1w \
-    --participant-label 01
+    --participant-label 22 23
 
 ## Detach screen
 Ctrl-A e depois D
@@ -51,7 +53,7 @@ Ctrl-A e depois D
 # FIELMAP EPI
 
 ## Open screen
-screen -L -Logfile /DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module2-fMRIPrep/logs/vpmb-epi_fmriprep_sub-01.txt -S vpmb-epi-01
+screen -L -Logfile /DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module2-fMRIPrep/logs/vpmb-epi_fmriprep_sub-2223.txt -S vpmb-epi-2223
 
 ## Start
 docker run -ti --rm \
@@ -65,10 +67,11 @@ docker run -ti --rm \
     -w /work \
     --fs-license-file /license \
     --nprocs 16 \
+    --low-mem \
     --stop-on-first-crash \
     --fs-no-reconall \
     --output-spaces MNI152NLin2009cAsym T1w \
-    --participant-label 01
+    --participant-label 22 23
 
 ## Detach screen
 Ctrl-A e depois D
@@ -76,7 +79,7 @@ Ctrl-A e depois D
 # FIELMAP NLREG
 
 ## Open screen
-screen -L -Logfile /DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module2-fMRIPrep/logs/vpmb-nlreg_fmriprep_sub-01.txt -S vpmb-nlreg-01
+screen -L -Logfile /DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module2-fMRIPrep/logs/vpmb-nlreg_fmriprep_sub-2223.txt -S vpmb-nlreg-2223
 
 ## Start
 docker run -ti --rm \
@@ -91,15 +94,16 @@ docker run -ti --rm \
     --fs-license-file /license \
     --use-syn-sdc \
     --nprocs 16 \
+    --low-mem \
     --stop-on-first-crash \
     --fs-no-reconall \
     --output-spaces MNI152NLin2009cAsym T1w \
-    --participant-label 01
+    --participant-label 22 23
 
 # FIELMAP gre
 
 ## Open screen
-screen -L -Logfile /DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module2-fMRIPrep/logs/vpmb-gre_fmriprep_sub-01.txt -S vpmb-gre-01
+screen -L -Logfile /DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module2-fMRIPrep/logs/vpmb-gre_fmriprep_sub-2223.txt -S vpmb-gre-2223
 
 ## Start
 docker run -ti --rm \
@@ -113,10 +117,11 @@ docker run -ti --rm \
     -w /work \
     --fs-license-file /license \
     --nprocs 16 \
+    --low-mem \
     --stop-on-first-crash \
     --fs-no-reconall \
     --output-spaces MNI152NLin2009cAsym T1w \
-    --participant-label 01
+    --participant-label 22 23
 
 ## Detach screen
 Ctrl-A e depois D    
