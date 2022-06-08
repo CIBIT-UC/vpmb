@@ -146,7 +146,42 @@ ylim([0.25 0.85]), ylabel('BBR cost function')
 set(gca,'FontSize',14)
 
 
+%% Two way ANOVA
 
+% metric
+metric = 'bbr';
 
+% Prep data
+sdcMethodLabel = reshape(repmat(sdcMethods,135,1),675,1);
+TRLabel = repmat([repmat('0500',30,1) ; repmat('0750',30,1) ; repmat('1000',45,1) ; repmat('2500',30,1)],5,1);
+
+DATAforANOVA = [DATA.EPI.COST.(metric).reshape0500;
+                DATA.EPI.COST.(metric).reshape0750;
+                DATA.EPI.COST.(metric).reshape1000;
+                DATA.EPI.COST.(metric).reshape2500;
+
+                DATA.GRE.COST.(metric).reshape0500;
+                DATA.GRE.COST.(metric).reshape0750;
+                DATA.GRE.COST.(metric).reshape1000;
+                DATA.GRE.COST.(metric).reshape2500;
+
+                DATA.NLREG.COST.(metric).reshape0500;
+                DATA.NLREG.COST.(metric).reshape0750;
+                DATA.NLREG.COST.(metric).reshape1000;
+                DATA.NLREG.COST.(metric).reshape2500;
+
+                DATA.SPE.COST.(metric).reshape0500;
+                DATA.SPE.COST.(metric).reshape0750;
+                DATA.SPE.COST.(metric).reshape1000;
+                DATA.SPE.COST.(metric).reshape2500;
+
+                DATA.NONE.COST.(metric).reshape0500;
+                DATA.NONE.COST.(metric).reshape0750;
+                DATA.NONE.COST.(metric).reshape1000;
+                DATA.NONE.COST.(metric).reshape2500 ];
+
+[p, ~, stats] = anovan(DATAforANOVA,{sdcMethodLabel TRLabel},'model',2,'varnames',{'sdcMethod','TR'});
+
+[results,~,~,gnames] = multcompare(stats,"Dimension",[1 2]);
 
 
