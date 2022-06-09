@@ -148,7 +148,7 @@ set(gca,'FontSize',14)
 
 %% Data for notBoxPlot
 
-metric = 'bbr';
+metric = 'normmi';
 DATAforPLOT = nan(45,20);
 
 DATAforPLOT(1:30,1:5) = [DATA.EPI.COST.(metric).reshape0500,DATA.GRE.COST.(metric).reshape0500,DATA.NLREG.COST.(metric).reshape0500,DATA.SPE.COST.(metric).reshape0500,DATA.NONE.COST.(metric).reshape0500];
@@ -188,7 +188,7 @@ end
 
 patches = [h1.sdPtch h2.sdPtch h3.sdPtch h4.sdPtch];
 
-legend(patches([1 5 11 20]),{'TR = 0.5 s','TR = 0.75 s','TR = 1 s', 'TR = 2.5 s'},'location','northeastoutside','box','off')
+legend(patches([1 6 11 20]),{'TR = 0.5 s','TR = 0.75 s','TR = 1 s', 'TR = 2.5 s'},'location','northeastoutside','box','off')
 
 set(gca,'FontSize',14)
 grid on, box on
