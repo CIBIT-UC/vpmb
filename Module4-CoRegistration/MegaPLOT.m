@@ -146,10 +146,91 @@ ylim([0.25 0.85]), ylabel('BBR cost function')
 set(gca,'FontSize',14)
 
 
+%% Data for notBoxPlot
+
+DATAforPLOT = nan(45,20);
+
+DATAforPLOT(1:30,1:5) = [DATA.EPI.COST.bbr.reshape0500,DATA.GRE.COST.bbr.reshape0500,DATA.NLREG.COST.bbr.reshape0500,DATA.SPE.COST.bbr.reshape0500,DATA.NONE.COST.bbr.reshape0500];
+DATAforPLOT(1:30,6:10) = [DATA.EPI.COST.bbr.reshape0750,DATA.GRE.COST.bbr.reshape0750,DATA.NLREG.COST.bbr.reshape0750,DATA.SPE.COST.bbr.reshape0750,DATA.NONE.COST.bbr.reshape0750];
+DATAforPLOT(1:45,11:15) = [DATA.EPI.COST.bbr.reshape1000,DATA.GRE.COST.bbr.reshape1000,DATA.NLREG.COST.bbr.reshape1000,DATA.SPE.COST.bbr.reshape1000,DATA.NONE.COST.bbr.reshape1000];
+DATAforPLOT(1:30,16:20) = [DATA.EPI.COST.bbr.reshape2500,DATA.GRE.COST.bbr.reshape2500,DATA.NLREG.COST.bbr.reshape2500,DATA.SPE.COST.bbr.reshape2500,DATA.NONE.COST.bbr.reshape2500];
+
+
+
+%%
+figure('position',[10 10 550 950])
+%suptitle('Co-registration comparison | Metric: BBR cost function')
+
+% TR 0500
+hold on
+
+h1 = notBoxPlot(DATAforPLOT(:,1:5),...
+    1:5,'sdPatchColor',[244 95 56]/255,'semPatchColor',[244 115 56]/255);
+
+h2 = notBoxPlot(DATAforPLOT(:,6:10),...
+    7:11,'sdPatchColor',[254 208 117]/255,'semPatchColor',[254 228 117]/255);
+
+h3 = notBoxPlot(DATAforPLOT(:,11:15),...
+   13:17,'sdPatchColor',[154 200 194]/255,'semPatchColor',[154 220 194]/255);
+
+h4 = notBoxPlot(DATAforPLOT(:,16:20),...
+    19:23,'sdPatchColor',[27 125 118]/255,'semPatchColor',[27 145 118]/255);
+
+hold off
+
+xlim([0,24])
+xticks([1:5 7:11 13:17 19:23]), xticklabels(repmat(sdcMethods,1,4))
+ylim([0.25 0.85]), ylabel('BBR cost function')
+set(gca,'FontSize',14)
+grid on, box on
+
+patches = [h1.sdPtch h2.sdPtch h3.sdPtch h4.sdPtch];
+
+legend(patches([1 5 11 20]),{'TR = 0.5 s','TR = 0.75 s','TR = 1 s', 'TR = 2.5 s'},'location','southeast')
+
+camroll(-90)
+
+%%
+title('TR = 0.5 s')
+xticks(1:length(sdcMethods)), xticklabels(sdcMethods)
+ylim([0.25 0.85]), ylabel('BBR cost function')
+set(gca,'FontSize',14)
+
+%%
+% TR 0750
+
+
+notBoxPlot([],1:5,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
+
+title('TR = 0.75 s')
+xticks(1:length(sdcMethods)), xticklabels(sdcMethods)
+ylim([0.25 0.85]), ylabel('BBR cost function')
+set(gca,'FontSize',14)
+
+% TR 1000
+
+
+notBoxPlot([],1:5,'sdPatchColor',[0.4 0.4 0.8],'semPatchColor',[0.4 0.3 0.7])
+
+title('TR = 1 s')
+xticks(1:length(sdcMethods)), xticklabels(sdcMethods)
+ylim([0.25 0.85]), ylabel('BBR cost function')
+set(gca,'FontSize',14)
+
+% TR 2500
+
+
+
+title('TR = 2.5 s')
+xticks(1:length(sdcMethods)), xticklabels(sdcMethods)
+ylim([0.25 0.85]), ylabel('BBR cost function')
+set(gca,'FontSize',14)
+
+
 %% Two way ANOVA
 
 % metric
-metric = 'bbr';
+metric = 'normmi';
 
 % Prep data
 sdcMethodLabel = reshape(repmat(sdcMethods,135,1),675,1);
