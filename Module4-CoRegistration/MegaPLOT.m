@@ -186,7 +186,7 @@ grid on, box on
 
 patches = [h1.sdPtch h2.sdPtch h3.sdPtch h4.sdPtch];
 
-legend(patches([1 5 11 20]),{'TR = 0.5 s','TR = 0.75 s','TR = 1 s', 'TR = 2.5 s'},'location','southeast')
+legend(patches([1 5 11 20]),{'TR = 0.5 s','TR = 0.75 s','TR = 1 s', 'TR = 2.5 s'},'location','northeastoutside')
 
 camroll(-90)
 
