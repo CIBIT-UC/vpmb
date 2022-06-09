@@ -145,7 +145,6 @@ xticks(1:length(sdcMethods)), xticklabels(sdcMethods)
 ylim([0.25 0.85]), ylabel('BBR cost function')
 set(gca,'FontSize',14)
 
-
 %% Data for notBoxPlot
 
 metric = 'normmi';
@@ -157,7 +156,7 @@ DATAforPLOT(1:45,11:15) = [DATA.EPI.COST.(metric).reshape1000,DATA.GRE.COST.(met
 DATAforPLOT(1:30,16:20) = [DATA.EPI.COST.(metric).reshape2500,DATA.GRE.COST.(metric).reshape2500,DATA.NLREG.COST.(metric).reshape2500,DATA.SPE.COST.(metric).reshape2500,DATA.NONE.COST.(metric).reshape2500];
 
 %% notBoxPlot
-
+% colors based on instagram.com/colours.cafe/CeN-WGjDX5U/, number 04
 figure('position',[10 10 600 950])
 
 % TR 0500
@@ -229,8 +228,6 @@ DATAforANOVA = [DATA.EPI.COST.(metric).reshape0500;
                 DATA.NONE.COST.(metric).reshape1000;
                 DATA.NONE.COST.(metric).reshape2500 ];
 
-[p, ~, stats] = anovan(DATAforANOVA,{sdcMethodLabel TRLabel},'model',2,'varnames',{'sdcMethod','TR'});
+[p, tableAN, stats] = anovan(DATAforANOVA,{sdcMethodLabel TRLabel},'model',2,'varnames',{'sdcMethod','TR'});
 
-[results,~,~,gnames] = multcompare(stats,"Dimension",[1 2]);
-
-
+[c,m,h,nms] = multcompare(stats,"Dimension",[1 2]);
