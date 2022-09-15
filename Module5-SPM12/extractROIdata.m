@@ -5,7 +5,7 @@ function [CoG,TValue,PeakVoxTValue,PeakVoxCoord] = extractROIdata(ROI, Contrast)
 
 Y = spm_read_vols(spm_vol(ROI),1); % read values from ROI
 
-indx = find(Y>0); % find which voxels belong to ROI
+indx = find(Y>0.1); % find which voxels belong to ROI. do not use zero as the threshold as there could be some noise in the background.
 
 [x,y,z] = ind2sub(size(Y),indx); % convert to x,y,z coordinates
 
@@ -17,9 +17,7 @@ tvalues = spm_get_data(Contrast, XYZ); % get t-values for the given contrast ins
 
 [PeakVoxTValue, m2] = max(tvalues); % calculate max and index of max
 
-[p1,p2,p3] = ind2sub(size(Y),m2); % convert index of max to x,y,z coordinates
-
-PeakVoxCoord = [p1 p2 p3]'; % concatenate to export
+PeakVoxCoord = XYZ(:,m2); % concatenate to export
 
 TValue = nanmean(tvalues,2); % calculate mean t-value of ROI
 
