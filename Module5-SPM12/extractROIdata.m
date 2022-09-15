@@ -1,7 +1,7 @@
 function [CoG_vox,TValue,PeakVoxTValue,PeakVoxCoord_vox,CoG_mm,PeakVoxCoord_mm] = extractROIdata(ROI, Contrast)
 %EXTRACTROIDATA Extract center of gravity (CoG) and T-value of a specific
 %ROI for a given Contrast
-%   
+%   Some reference: https://www.jiscmail.ac.uk/cgi-bin/webadmin?A2=spm;d269f69c.1604
 
 [Y,XYZ_mm] = spm_read_vols(spm_vol(ROI),1); % read values from ROI and coordinates in mm
 
