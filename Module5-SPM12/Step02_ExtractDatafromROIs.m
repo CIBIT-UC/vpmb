@@ -39,7 +39,7 @@ baseFolder = '/DATAPOOL/VPMB';
 
 % Distortion correction method (affects folders)
 % Options: NLREG, NONE, EPI, SPE, GRE
-sdcMethod = 'NLREG';
+sdcMethod = 'SPE';
 
 %% Folders
 bidsFolder      = fullfile(baseFolder,['BIDS-VPMB-' sdcMethod]);
@@ -67,7 +67,7 @@ taskList = cellfun(@(x) x(8:end-10), taskList, 'un', 0); % remove trailing and l
 nTasks = length(taskList);
 
 % ROIs
-roiList = {'aIns_L_brainnetome' 'aIns_R_brainnetome' 'Ca_L_CIT168' 'Ca_L_CIT168' 'hMT_L_brainnetome' 'hMT_L_brainnetome' ...
+roiList = {'aIns_L_brainnetome' 'aIns_R_brainnetome' 'Ca_L_CIT168' 'Ca_L_CIT168' 'hMT_L_brainnetome' 'hMT_R_brainnetome' ...
     'hMT_L_glasser' 'hMT_R_glasser' 'MPFC_L_brainnetome' 'MPFC_R_brainnetome' 'MPFC_L_glasser' 'MPFC_R_glasser' ...
     'NAc_L_brainnetome' 'NAc_R_brainnetome' 'NAc_L_CIT168' 'NAc_R_CIT168' 'SubCC_L_glasser' 'SubCC_R_glasser' ...
     'V1_L_glasser' 'V1_R_glasser'};
@@ -78,13 +78,17 @@ nROIs = length(roiList);
 outputMatrix = struct();
 
 outputMatrix.T1w.TValue = zeros(nROIs,nSubjects,nTasks);
-outputMatrix.T1w.CoG = zeros(3,nROIs,nSubjects,nTasks);
+outputMatrix.T1w.CoG_vox = zeros(3,nROIs,nSubjects,nTasks);
+outputMatrix.T1w.CoG_mm = zeros(3,nROIs,nSubjects,nTasks);
 outputMatrix.T1w.PeakVoxTValue = zeros(nROIs,nSubjects,nTasks);
-outputMatrix.T1w.PeakVoxCoord = zeros(3,nROIs,nSubjects,nTasks);
+outputMatrix.T1w.PeakVoxCoord_vox = zeros(3,nROIs,nSubjects,nTasks);
+outputMatrix.T1w.PeakVoxCoord_mm = zeros(3,nROIs,nSubjects,nTasks);
 outputMatrix.MNI152NLin2009ASym.TValue = zeros(nROIs,nSubjects,nTasks);
-outputMatrix.MNI152NLin2009ASym.CoG = zeros(3,nROIs,nSubjects,nTasks);
+outputMatrix.MNI152NLin2009ASym.CoG_vox = zeros(3,nROIs,nSubjects,nTasks);
+outputMatrix.MNI152NLin2009ASym.CoG_mm = zeros(3,nROIs,nSubjects,nTasks);
 outputMatrix.MNI152NLin2009ASym.PeakVoxTValue = zeros(nROIs,nSubjects,nTasks);
-outputMatrix.MNI152NLin2009ASym.PeakVoxCoord = zeros(3,nROIs,nSubjects,nTasks);
+outputMatrix.MNI152NLin2009ASym.PeakVoxCoord_vox = zeros(3,nROIs,nSubjects,nTasks);
+outputMatrix.MNI152NLin2009ASym.PeakVoxCoord_mm = zeros(3,nROIs,nSubjects,nTasks);
 
 % init spm
 spm('defaults', 'FMRI');
@@ -138,7 +142,7 @@ for rr = 1:nROIs
         % Iterate on the tasks
         for tt = 1:nTasks
             
-            [outputMatrix.MNI152NLin2009ASym.CoG(:,rr,ss,tt),outputMatrix.MNI152NLin2009ASym.TValue(rr,ss,tt),outputMatrix.MNI152NLin2009ASym.PeakVoxTValue(rr,ss,tt),outputMatrix.MNI152NLin2009ASym.PeakVoxCoord(:,rr,ss,tt)] = ...
+            [outputMatrix.MNI152NLin2009ASym.CoG_vox(:,rr,ss,tt),outputMatrix.MNI152NLin2009ASym.TValue(rr,ss,tt),outputMatrix.MNI152NLin2009ASym.PeakVoxTValue(rr,ss,tt),outputMatrix.MNI152NLin2009ASym.PeakVoxCoord_vox(:,rr,ss,tt),outputMatrix.MNI152NLin2009ASym.CoG_mm(:,rr,ss,tt),outputMatrix.MNI152NLin2009ASym.PeakVoxCoord_mm(:,rr,ss,tt)] = ...
                 extractROIdata(...
                     fullfile(subjectOutputROIFolder,newROIName), ...
                     fullfile(spm12Folder,subjectList{ss},['model_' taskList{tt} '_MNI152NLin2009cAsym'],'con_0001.nii,1') );
@@ -179,7 +183,7 @@ for rr = 1:nROIs
         
         for tt = 1:nTasks
             
-            [outputMatrix.T1w.CoG(:,rr,ss,tt),outputMatrix.T1w.TValue(rr,ss,tt),outputMatrix.T1w.PeakVoxTValue(rr,ss,tt),outputMatrix.T1w.PeakVoxCoord(:,rr,ss,tt)] = ...
+            [outputMatrix.T1w.CoG_vox(:,rr,ss,tt),outputMatrix.T1w.TValue(rr,ss,tt),outputMatrix.T1w.PeakVoxTValue(rr,ss,tt),outputMatrix.T1w.PeakVoxCoord_vox(:,rr,ss,tt),outputMatrix.T1w.CoG_mm(:,rr,ss,tt),outputMatrix.T1w.PeakVoxCoord_mm(:,rr,ss,tt)] = ...
                 extractROIdata(...
                     fullfile(subjectOutputROIFolder,newROIName), ...
                     fullfile(spm12Folder,subjectList{ss},['model_' taskList{tt} '_T1w'],'con_0001.nii,1') );
