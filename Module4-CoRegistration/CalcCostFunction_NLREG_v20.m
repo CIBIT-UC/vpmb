@@ -74,7 +74,7 @@ for ss = 1:nSubjects
         % filenames according to the sdcMethod and the existence of an
         % SBRef image
         d = dir(fullfile(subtaskWFolder,...
-            '/bold_reg_wf/fsl_bbr_wf/flt_bbr/ref_bold_corrected_trans_masked_flirt.mat'));
+            '/bold_reg_wf/fsl_bbr_wf/flt_bbr/ref_*_corrected_trans_masked_flirt.mat'));
         
         if length(d) == 1
             affineMatrix = fullfile(d(1).folder,d(1).name);
