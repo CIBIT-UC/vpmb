@@ -1,9 +1,12 @@
+% This script is for NLREG with fmriprep v20
+% some filenames are different
+
 clc, clear
 
 %% Folders
-sdcMethod = 'SPE';
+sdcMethod = 'NLREG';
 bidsFolder = ['/DATAPOOL/VPMB/BIDS-VPMB-' sdcMethod];
-workFolder = ['/DATAPOOL/VPMB/fmriprep-work_VPMB-' sdcMethod '/fmriprep_wf'];
+workFolder = ['/DATAPOOL/VPMB/VPMB-BIDS-NLREG-work/fmriprep_wf'];
 
 %% Subject List
 aux = dir(fullfile(bidsFolder,'sub-*'));
@@ -46,14 +49,14 @@ for ss = 1:nSubjects
         % working folder
         subtaskWFolder = fullfile(workFolder,...
             ['single_subject_' subjectID(5:end) '_wf'],...
-            ['func_preproc_' strrep(taskName,'-','_') '_run_1_wf']);
+            ['func_preproc_' strrep(taskName,'-','_') '_run_01_wf']);
         
         %% func image after SDC        
         % we need this dir here because fmriprep will generate different
         % filenames according to the sdcMethod and the existence of an
         % SBRef image
         d = dir(fullfile(subtaskWFolder,...
-            'final_boldref_wf/enhance_and_skullstrip_bold_wf/n4_correct/vol*.nii*'));
+            'final_boldref_wf/enhance_and_skullstrip_bold_wf/n4_correct/ref_bold_corrected.nii.gz'));
         
         if length(d) == 1
             funcImage = fullfile(d(1).folder,d(1).name);
@@ -64,14 +67,14 @@ for ss = 1:nSubjects
 
         %% T1w image
         refImage = fullfile(subtaskWFolder,...
-            ['t1w_brain/' subjectID '_run-1_T1w_corrected_xform_masked.nii.gz']);
+            ['t1w_brain/' subjectID '_run-01_T1w_corrected_xform_masked.nii.gz']);
         
         %% Estimated transformation matrix (BBR, 6 DoF)
         % we need this dir here because fmriprep will generate different
         % filenames according to the sdcMethod and the existence of an
         % SBRef image
         d = dir(fullfile(subtaskWFolder,...
-            '/bold_reg_wf/fsl_bbr_wf/flt_bbr/vol*.mat'));
+            '/bold_reg_wf/fsl_bbr_wf/flt_bbr/ref_bold_corrected_trans_masked_flirt.mat'));
         
         if length(d) == 1
             affineMatrix = fullfile(d(1).folder,d(1).name);
@@ -105,7 +108,7 @@ for ss = 1:nSubjects
             funcImage,...
             refImage,...
             affineMatrix,...
-            fullfile(subtaskWFolder,['bold_reg_wf/fsl_bbr_wf/wm_mask/' subjectID '_run-1_T1w_corrected_xform_masked_pveseg_dseg_mask.nii.gz']));
+            fullfile(subtaskWFolder,['bold_reg_wf/fsl_bbr_wf/wm_mask/' subjectID '_run-01_T1w_corrected_xform_masked_pveseg_dseg_mask.nii.gz']));
         
         [~,result3] = system(cmd);
         
