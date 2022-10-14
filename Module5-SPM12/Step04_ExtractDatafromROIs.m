@@ -1,7 +1,7 @@
-%% -- Step02_ExtractDatafromROIs.m ------------------------------------------------- %%
+%% -- Step04_ExtractDatafromROIs.m ------------------------------------------------- %%
 % ----------------------------------------------------------------------- %
 % Script for executing the second step regarding the SPM analysis of fMRI
-% data after preprocessing with fmriPrep v21 - extracting the T value and 
+% data after preprocessing with fmriPrep v20 - extracting the T value and 
 % coordinates of the various contrasts of interests for the ROIs defined 
 % before. This also reslices the ROIs to each image.
 %
@@ -15,13 +15,13 @@
 % at any other computer
 %
 % Requirements:
-% - Preprocessed data by fmriPrep v21
+% - Preprocessed data by fmriPrep v20
 % - FSL 6 functions in path
 % - SPM12 in path
 %
 % Author: Alexandre Sayal
 % CIBIT, University of Coimbra
-% April 2022
+% October 2022
 % ----------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
 
@@ -39,17 +39,23 @@ baseFolder = '/DATAPOOL/VPMB';
 
 % Distortion correction method (affects folders)
 % Options: NLREG, NONE, EPI, SPE, GRE
-sdcMethod = 'NONE';
+sdcMethod = 'NLREG';
 
 %% Folders
 bidsFolder      = fullfile(baseFolder,['BIDS-VPMB-' sdcMethod]);
 derivFolder     = fullfile(bidsFolder,'derivatives');
 fmriPrepFolder  = fullfile(bidsFolder,'derivatives','fmriprep');
 spm12Folder     = fullfile(bidsFolder,'derivatives','spm12');
-roiFolder       = fullfile(baseFolder,'ROIsforSDC');
-outputROIFolder = fullfile(derivFolder,'ROIs');
+
+
+roiFolder       = fullfile(derivFolder,'ROI_spherical','group');
+outputROIFolder = fullfile(derivFolder,'ROI_spherical');
 
 codeFolder     = pwd;
+
+%% Load data from step 03
+% data from localizer spherical group ROIs - datasetLocROIs
+load('Output_Step03_datasetLocROIs.mat');
 
 %% Subject, Task, ROI Lists and output matrices
 
@@ -67,10 +73,7 @@ taskList = cellfun(@(x) x(8:end-10), taskList, 'un', 0); % remove trailing and l
 nTasks = length(taskList);
 
 % ROIs
-roiList = {'aIns_L_brainnetome' 'aIns_R_brainnetome' 'Ca_L_CIT168' 'Ca_L_CIT168' 'hMT_L_brainnetome' 'hMT_R_brainnetome' ...
-    'hMT_L_glasser' 'hMT_R_glasser' 'MPFC_L_brainnetome' 'MPFC_R_brainnetome' 'MPFC_L_glasser' 'MPFC_R_glasser' ...
-    'NAc_L_brainnetome' 'NAc_R_brainnetome' 'NAc_L_CIT168' 'NAc_R_CIT168' 'SubCC_L_glasser' 'SubCC_R_glasser' ...
-    'V1_L_glasser' 'V1_R_glasser'};
+roiList = erase(datasetLocROIs.ROIname,' ');
 
 nROIs = length(roiList);
 
@@ -99,7 +102,7 @@ clear matlabbatch
 % Iterate on the ROIs
 for rr = 1:nROIs
     
-    roiFile = fullfile(roiFolder,[roiList{rr} '.nii.gz']);
+    roiFile = fullfile(roiFolder,[roiList{rr} '_sphere8mm.nii']);
     
     % Iterate on the subjects
     for ss = 1:nSubjects
@@ -113,30 +116,17 @@ for rr = 1:nROIs
         % unzip and resample ROIs to MNI152
         clear matlabbatch
         
-        matlabbatch{1}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.files = {roiFile};
-        matlabbatch{1}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.outdir = {roiFolder};
-        matlabbatch{1}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.keep = true;
-        
-        matlabbatch{2}.spm.spatial.coreg.write.ref = {fullfile(spm12Folder,subjectList{ss},'model_task-loc_acq-1000_run-1_MNI152NLin2009cAsym','con_0001.nii,1')};
-        matlabbatch{2}.spm.spatial.coreg.write.source(1) = cfg_dep('Gunzip Files: Gunzipped Files', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{':'}));
-        matlabbatch{2}.spm.spatial.coreg.write.roptions.interp = 4;
-        matlabbatch{2}.spm.spatial.coreg.write.roptions.wrap = [0 0 0];
-        matlabbatch{2}.spm.spatial.coreg.write.roptions.mask = 0;
-        matlabbatch{2}.spm.spatial.coreg.write.roptions.prefix = [subjectList{ss} '_MNI152NLin2009cAsym-reslice_'];
+        matlabbatch{1}.spm.spatial.coreg.write.ref = {fullfile(spm12Folder,subjectList{ss},'model_task-loc_acq-1000_run-1_MNI152NLin2009cAsym','con_0001.nii,1')};
+        matlabbatch{1}.spm.spatial.coreg.write.source(1) = {roiFile};
+        matlabbatch{1}.spm.spatial.coreg.write.roptions.interp = 4;
+        matlabbatch{1}.spm.spatial.coreg.write.roptions.wrap = [0 0 0];
+        matlabbatch{1}.spm.spatial.coreg.write.roptions.mask = 0;
+        matlabbatch{1}.spm.spatial.coreg.write.roptions.prefix = [subjectList{ss} '_MNI152NLin2009cAsym-reslice_'];
         
         spm_jobman('run', matlabbatch);
         
-        newROIName = [subjectList{ss} '_MNI152NLin2009cAsym-reslice_' roiList{rr} '.nii'];
+        newROIName = [subjectList{ss} '_MNI152NLin2009cAsym-reslice_' roiList{rr} '_sphere8mm.nii'];
         movefile(fullfile(roiFolder,newROIName),subjectOutputROIFolder)
-        
-        
-        
-        %% TODO
-        % Adjust sphere acording to the GLM?!
-        %I think the risk of double dipping is too big, since we only have
-        %two runs for each TR and the localizer does not include all
-        %regions - this adds to the point that some of these regions will
-        %not show up on any contrast (e.g. NAcc)
         
         %%
         % Iterate on the tasks
@@ -177,7 +167,7 @@ for rr = 1:nROIs
         
         spm_jobman('run', matlabbatch);
         
-        newROIName = [subjectList{ss} '_T1w-reslice_' roiList{rr} '.nii'];
+        newROIName = [subjectList{ss} '_T1w-reslice_' roiList{rr} '_sphere8mm.nii'];
         movefile(fullfile(subjectOutputROIFolder,['T1w-reslice_' subjectList{ss} '_T1w_' roiList{rr} '.nii']),...
                  fullfile(subjectOutputROIFolder,newROIName))
         
@@ -195,5 +185,5 @@ for rr = 1:nROIs
 end
 
 %% Export output
-save(['Output_Step02_' sdcMethod '.mat'])
+save(['Output_Step04_' sdcMethod '.mat'])
 toc

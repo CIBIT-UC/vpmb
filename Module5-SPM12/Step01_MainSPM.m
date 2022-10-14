@@ -58,8 +58,8 @@ addpath('/SCRATCH/software/toolboxes/nifti-tools')
 addpath(genpath('/SCRATCH/software/toolboxes/neuroelf-matlab/'))
 
 %% Folders
-bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NONE';
-%bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NLREG';
+%bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NONE';
+bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NLREG';
 %bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-EPI';
 %bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-SPE';
 %bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-GRE';
