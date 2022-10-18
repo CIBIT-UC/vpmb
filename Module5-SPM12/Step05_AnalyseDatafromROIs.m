@@ -32,7 +32,7 @@ roiList = erase(roiList,'+');
 % output dimensions - nROIs x 5 x nSubjects
 
 TRList = {'TR0500','TR0750','TR1000','TR2500'};
-nTRs = length(TRIndexes);
+nTRs = length(TRList);
 TRIndexes = {[1 5], [2 6], [3 7], [4 8]}; % ignoring 9 - localizer
 
 %% average distance between sdcMethods -> how much the methods differ
@@ -250,8 +250,8 @@ for rr = 1:nROIs
         for mm = 1:nMethods
 
             % average for the runs with the same TR and save
-            TVALUE.(roiList{rr}).(TRList{tt})(:,mm) = mean(dataset.(sdcMethods{mm}).outputMatrix.T1w.PeakVoxTValue(rr, :, TRIndexes{tt}) , 3);
-                      
+            %TVALUE.(roiList{rr}).(TRList{tt})(:,mm) = mean(dataset.(sdcMethods{mm}).outputMatrix.MNI152NLin2009ASym.PeakVoxTValue(rr, :, TRIndexes{tt}) , 3);
+             TVALUE.(roiList{rr}).(TRList{tt})(:,mm) = mean(dataset.(sdcMethods{mm}).outputMatrix.T1w.PeakVoxTValue(rr, :, TRIndexes{tt}) , 3);         
         end
                
     end
