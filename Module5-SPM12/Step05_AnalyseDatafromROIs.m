@@ -2,7 +2,9 @@
 
 % Requires:
 % - textborder (https://www.mathworks.com/matlabcentral/fileexchange/27383-textborder-higher-contrast-text-using-a-1-pixel-thick-border)
+% - notBoxPlot
 
+addpath('/DATAPOOL/home/alexandresayal/Documents/MATLAB/notBoxPlot')
 
 clear,clc
 
@@ -31,46 +33,7 @@ roiList = erase(roiList,'+');
 
 TRList = {'TR0500','TR0750','TR1000','TR2500'};
 nTRs = length(TRIndexes);
-TRIndexes = {[1 5], [2 6], [3 7 9], [4 8]};
-
-% iterate on the TRIndexes
-for rr = 1:nTRs
-        
-    auxiliaryStruct = struct();
-    
-    for mm = 1:nMethods
-        
-        aux = dataset.(sdcMethods{mm}).outputMatrix.T1w.PeakVoxCoord_mm(:,:, :, TRIndexes{rr});
-        
-        auxiliaryStruct.(sdcMethods{mm}) = mean(aux,4); % average all runs with the same TR. This will be 3 x nROIs x nSubjects
-        
-    end
-        
-end
-
-%% 3D figure - test
-% roiNumber = 9;
-% testData = squeeze(auxiliaryStruct.EPI(:,roiNumber,:));
-% testDataB = squeeze(auxiliaryStruct.GRE(:,roiNumber,:));
-% testDataC = squeeze(auxiliaryStruct.NONE(:,roiNumber,:));
-% testDataD = squeeze(auxiliaryStruct.SPE(:,roiNumber,:));
-% testDataE = squeeze(auxiliaryStruct.NLREG(:,roiNumber,:));
-% 
-% figure
-% 
-% plot3(testData(1,:),testData(2,:),testData(3,:),'o','LineWidth',4,'MarkerSize',4)
-% hold on
-% plot3(testDataB(1,:),testDataB(2,:),testDataB(3,:),'.','LineWidth',4,'MarkerSize',4)
-% hold on
-% plot3(testDataC(1,:),testDataC(2,:),testDataC(3,:),'x','LineWidth',4,'MarkerSize',4)
-% hold on
-% plot3(testDataD(1,:),testDataD(2,:),testDataD(3,:),'s','LineWidth',4,'MarkerSize',4)
-% hold on
-% plot3(testDataE(1,:),testDataE(2,:),testDataE(3,:),'*','LineWidth',4,'MarkerSize',4)
-% hold off
-% 
-% title(roiList{roiNumber},'interpreter','none')
-
+TRIndexes = {[1 5], [2 6], [3 7], [4 8]}; % ignoring 9 - localizer
 
 %% average distance between sdcMethods -> how much the methods differ
 
@@ -110,7 +73,7 @@ for cc = 1:size(C,1)
     
 end % end combination of methods iteration
 
-%% PLOTSSSSS
+%% UGLY PLOTSSSSS
 
 CV = combvec(1:nROIs,1:length(TRIndexes))';
 
@@ -197,7 +160,7 @@ for jj = 1:size(CV,1)
         close
 end
 
-%% DIFFERENT PLOTSSSSS
+%% DIFFERENT PLOTSSSSS - per roi, WITHOUT SEM
 
 CV = combvec(1:nTRs,1:nROIs)';
 
@@ -268,12 +231,63 @@ for jj = 1:size(CV,1)
 end
 
 %% Compare T-values
+% TValue dimensions - nROIs,nSubjects,nTasks
 
+%% T-VALUE DATA REORGANIZATION PER ROI
 
+TVALUE = struct();
 
+% Iterate on the ROIs
+for rr = 1:nROIs
+    
+    %Iterate on the TRs
+    for tt = 1:nTRs
+        
+        % Initaliaze matrix
+        TVALUE.(roiList{rr}).(TRList{tt}) = zeros(nSubjects,nMethods);
+        
+        % Iterate on the sdcMethods
+        for mm = 1:nMethods
 
+            % average for the runs with the same TR and save
+            TVALUE.(roiList{rr}).(TRList{tt})(:,mm) = mean(dataset.(sdcMethods{mm}).outputMatrix.T1w.PeakVoxTValue(rr, :, TRIndexes{tt}) , 3);
+                      
+        end
+               
+    end
+      
+end
 
+%% PLOT T-VALUES
 
+CV = combvec(1:nTRs,1:nROIs)';
 
+for jj = 1:size(CV,1)
+    
+    trtoplot = CV(jj,1);
+    roitoplot = CV(jj,2);
 
+    % Start plotting in specific figure (one per ROI)
+    fig = figure(roitoplot);
+    set(gcf,'Units','inches', 'Position',[2 2 13 11])
 
+    DATAtoPLOT = TVALUE.(roiList{roitoplot}).(TRList{trtoplot});
+    
+    maxV = 10;
+
+    subplot(2,2,trtoplot)
+        notBoxPlot(DATAtoPLOT)
+        
+        xlabel('sdcMethod')
+        xticklabels(sdcMethods)
+        ylabel('t value')
+        title([roiList{roitoplot} ' | ' TRList{trtoplot}], 'FontSize', 14, 'interpreter', 'none');
+        ylim([0 maxV])
+        
+    if mod(jj,nTRs) == 0
+        %saveas(gcf,sprintf('Step05_outputFigs/MEAN--%s.png',roiList{roitoplot}))
+        pause
+        %close
+    end
+        
+end
