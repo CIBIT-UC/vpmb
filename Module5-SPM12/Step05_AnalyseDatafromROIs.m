@@ -1,3 +1,9 @@
+%%
+
+% Requires:
+% - textborder (https://www.mathworks.com/matlabcentral/fileexchange/27383-textborder-higher-contrast-text-using-a-1-pixel-thick-border)
+
+
 clear,clc
 
 %% Settings
@@ -8,7 +14,7 @@ nMethods = length(sdcMethods);
 dataset = struct();
 
 for ii = 1:length(sdcMethods)
-    filename = dir(['Output_Step02_' sdcMethods{ii} '*.mat']);
+    filename = dir(['Output_Step04_' sdcMethods{ii} '*.mat']);
     dataset.(sdcMethods{ii}) = load(filename.name,'outputMatrix');
 end
 
@@ -16,19 +22,19 @@ load(filename.name,'roiList','nROIs','taskList','nTasks','subjectList','nSubject
 
 clear filename ii
 
-%% Compare T1w center peak voxel coordinate of each ROI per participant and across sdc method for each TR
+%% Fix ROI names because they will be used for struct field names
+roiList = erase(roiList,'+');
+
+%% Compare T1w peak voxel coordinate of each ROI per participant and across sdc method for each TR
 % CoG dimensions - 3,nROIs,nSubjects,nTasks
 % output dimensions - nROIs x 5 x nSubjects
-% this is nonsense with the CoG - the coordinates will be the same since the reference
-% ROIs are the same. This would only work for the glm cluster defined for
-% each participant (maybe..)
-% However, with the peak voxel coordinate...
 
 TRList = {'TR0500','TR0750','TR1000','TR2500'};
+nTRs = length(TRIndexes);
 TRIndexes = {[1 5], [2 6], [3 7 9], [4 8]};
 
 % iterate on the TRIndexes
-for rr = 1:length(TRIndexes)
+for rr = 1:nTRs
         
     auxiliaryStruct = struct();
     
@@ -66,7 +72,7 @@ end
 % title(roiList{roiNumber},'interpreter','none')
 
 
-%% average distance between EPI, SPE, GRE -> how much the methods differ
+%% average distance between sdcMethods -> how much the methods differ
 
 C = combnk(1:nMethods,2);
 
@@ -77,8 +83,7 @@ for cc = 1:size(C,1)
     
     % Iterate on the ROIs
     for rr = 1:nROIs
-        
-        
+              
         % Iterate on the TRs
         for tt = 1:length(TRIndexes)
             
@@ -105,13 +110,7 @@ for cc = 1:size(C,1)
     
 end % end combination of methods iteration
 
-%% Stat test
-%ttest(DIST.hMT_L_brainnetome.TR0500.data,zeros(nMethods,nMethods,nSubjects),'dim',3)
-
 %% PLOTSSSSS
-
-roitoplot = 3;
-trtoplot = 1;
 
 CV = combvec(1:nROIs,1:length(TRIndexes))';
 
@@ -194,8 +193,87 @@ for jj = 1:size(CV,1)
         set(gca, 'XTickLabel', sdcMethods, 'XTickLabelRotation', 0);
         set(gca, 'YTickLabel', sdcMethods);
 
-        saveas(gcf,sprintf('Step03_outputFigs/%s--%s.png',roiList{roitoplot},TRList{trtoplot}))
+        saveas(gcf,sprintf('Step05_outputFigs/%s--%s.png',roiList{roitoplot},TRList{trtoplot}))
         close
 end
+
+%% DIFFERENT PLOTSSSSS
+
+CV = combvec(1:nTRs,1:nROIs)';
+
+for jj = 1:size(CV,1)
+    
+    roitoplot = CV(jj,2);
+    trtoplot = CV(jj,1);
+
+    % Start plotting in specific figure (one per ROI)
+    fig = figure(roitoplot);
+    
+    DATAtoPLOT = DIST.(roiList{roitoplot}).(TRList{trtoplot});
+
+    % stat test - probably the stat only is not enough - should threshold in mm
+    % now I test for different and greater than 2 mm - that should suffice
+    TestZero = ttest(DATAtoPLOT.data, 2, 'dim',3,'tail','right');
+
+    % set minimum distance of 2mm - voxel size
+    TestZero(isnan(TestZero)) = 0;
+    %TestZero = TestZero & DATAtoPLOT.mean >= 1.999;
+    
+    set(gcf,'Units','inches', 'Position',[2 2 13 11])
+
+    % find maximum - using fixed value here
+    %maxV = ceil(max(max(DATAtoPLOT.mean)));
+    maxV = 11;
+    
+    subplot(2,2,trtoplot)
+        % plot matrix
+        im1 = imagesc(DATAtoPLOT.mean, [0 maxV]);
+
+        % iterate on the connections
+        for cc = 1:size(C,1)
+            % depending on if the test is significant or not, write the data label
+            % in bold + star or not
+            if TestZero(C(cc,1),C(cc,2)) == 1
+                textborder(C(cc,2),C(cc,1),sprintf('%0.2f*',DATAtoPLOT.mean(C(cc,1),C(cc,2))),...
+                    'white',[0.5 0.5 0.5],'horizontalalignment','center','fontweight','bold','FontSize', 12)
+            else
+                textborder(C(cc,2),C(cc,1),sprintf('%0.2f',DATAtoPLOT.mean(C(cc,1),C(cc,2))),...
+                    'white',[0.5 0.5 0.5],'horizontalalignment','center','FontSize', 12)
+            end
+        end
+
+        % Colormap and Colorbar
+        colormap(flipud(hot(maxV*2))); 
+        h = colorbar('eastoutside');
+        
+        % Title, axis
+        title([roiList{roitoplot} ' | ' TRList{trtoplot}], 'FontSize', 14, 'interpreter', 'none');
+        set(gca, 'XTick', (1:nROIs));
+        set(gca, 'YTick', (1:nROIs));
+        set(gca, 'Ticklength', [0 0])
+        set(gca, 'FontSize', 12)
+        grid off
+        box on
+
+        % Labels
+        xlabel(h, 'Distance (mm)', 'FontSize', 14);
+        set(gca, 'XTickLabel', sdcMethods, 'XTickLabelRotation', 0);
+        set(gca, 'YTickLabel', sdcMethods);
+
+        if mod(jj,nTRs) == 0
+            saveas(gcf,sprintf('Step05_outputFigs/MEAN--%s.png',roiList{roitoplot}))
+            %pause
+            close
+        end
+end
+
+%% Compare T-values
+
+
+
+
+
+
+
 
 
