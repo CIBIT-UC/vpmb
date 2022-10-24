@@ -276,18 +276,45 @@ for jj = 1:size(CV,1)
     maxV = 10;
 
     subplot(2,2,trtoplot)
-        notBoxPlot(DATAtoPLOT)
+        H = notBoxPlot(DATAtoPLOT);
         
         xlabel('sdcMethod')
         xticklabels(sdcMethods)
         ylabel('t value')
         title([roiList{roitoplot} ' | ' TRList{trtoplot}], 'FontSize', 14, 'interpreter', 'none');
         ylim([0 maxV])
+           
+        set(H(1).data,'Marker','.','MarkerSize',8)
+        set(H(1).sdPtch,'FaceColor',[0.93 0.69 0.13],'EdgeColor','none')
+        set(H(1).semPtch,'FaceColor',[0.9 0.5 0],'EdgeColor','none')
+        set(H(1).mu,'Color',[0.8 0.2 0])
+        
+        set(H(2).data,'Marker','.','MarkerSize',8)
+        set(H(2).sdPtch,'FaceColor',[0.93 0.69 0.43],'EdgeColor','none')
+        set(H(2).semPtch,'FaceColor',[0.9 0.5 0],'EdgeColor','none')
+        set(H(2).mu,'Color',[0.8 0.2 0])
+        
+        set(H(3).data,'Marker','.','MarkerSize',8)
+        set(H(3).sdPtch,'FaceColor',[0.93 0.69 0.33],'EdgeColor','none')
+        set(H(3).semPtch,'FaceColor',[0.9 0.5 0],'EdgeColor','none')
+        set(H(3).mu,'Color',[0.8 0.2 0])
+        
+        set(H(4).data,'Marker','.','MarkerSize',8)
+        set(H(4).sdPtch,'FaceColor',[0.93 0.69 0.23],'EdgeColor','none')
+        set(H(4).semPtch,'FaceColor',[0.9 0.5 0],'EdgeColor','none')
+        set(H(4).mu,'Color',[0.8 0.2 0])
+        
+        set(H(5).data,'Marker','.','MarkerSize',8)
+        set(H(5).sdPtch,'FaceColor',[0.93 0.69 0.53],'EdgeColor','none')
+        set(H(5).semPtch,'FaceColor',[0.9 0.5 0],'EdgeColor','none')
+        set(H(5).mu,'Color',[0.8 0.2 0])
+    
+        set(gca, 'FontSize', 12)
         
     if mod(jj,nTRs) == 0
-        %saveas(gcf,sprintf('Step05_outputFigs/MEAN--%s.png',roiList{roitoplot}))
-        pause
-        %close
+        saveas(gcf,sprintf('Step05_outputFigs/TVALUES--%s.png',roiList{roitoplot}))
+        %pause
+        close
     end
         
 end
