@@ -128,18 +128,27 @@ for rr = 1:nROIs
         newROIName = [subjectList{ss} '_MNI152NLin2009cAsym-reslice_' roiList{rr} '_sphere8mm.nii'];
         movefile(fullfile(roiFolder,newROIName),subjectOutputROIFolder)
         
-        %%
+        %% Extract data in MNI
         % Iterate on the tasks
         for tt = 1:nTasks
+            
+            % Very custom adjustment - if the ROI is V1 and the task is the
+            % localizer, use the second contrast (Static vs. Fixation)
+            if tt == 9 && rr>=9
+                conString = 'con_0002.nii,1';
+            else
+                conString = 'con_0001.nii,1';
+            end
             
             [outputMatrix.MNI152NLin2009ASym.CoG_vox(:,rr,ss,tt),outputMatrix.MNI152NLin2009ASym.TValue(rr,ss,tt),outputMatrix.MNI152NLin2009ASym.PeakVoxTValue(rr,ss,tt),outputMatrix.MNI152NLin2009ASym.PeakVoxCoord_vox(:,rr,ss,tt),outputMatrix.MNI152NLin2009ASym.CoG_mm(:,rr,ss,tt),outputMatrix.MNI152NLin2009ASym.PeakVoxCoord_mm(:,rr,ss,tt)] = ...
                 extractROIdata(...
                     fullfile(subjectOutputROIFolder,newROIName), ...
-                    fullfile(spm12Folder,subjectList{ss},['model_' taskList{tt} '_MNI152NLin2009cAsym'],'con_0001.nii,1') );
+                    fullfile(spm12Folder,subjectList{ss},['model_' taskList{tt} '_MNI152NLin2009cAsym'],...
+                    conString) );
             
         end
         
-        % Transform ROIs to T1w space
+        %% Transform ROIs to T1w space
         
         transformMatrixFile = fullfile(fmriPrepFolder,subjectList{ss},'anat',[subjectList{ss} '_run-1_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5']);
         t1wFile = fullfile(fmriPrepFolder,subjectList{ss},'anat',[subjectList{ss} '_run-1_desc-preproc_T1w.nii.gz']);
@@ -151,32 +160,42 @@ for rr = 1:nROIs
         
         system(cmd)
         
-        % unzip and resample ROIs to T1w
+        %% unzip and resample ROIs to T1w
         clear matlabbatch
         
         matlabbatch{1}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.files = {fullfile(subjectOutputROIFolder,[subjectList{ss} '_T1w_' roiList{rr} '.nii.gz'])};
         matlabbatch{1}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.outdir = {subjectOutputROIFolder};
         matlabbatch{1}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.keep = true;
         
-        matlabbatch{2}.spm.spatial.coreg.write.ref = {fullfile(spm12Folder,subjectList{ss},'model_task-loc_acq-1000_run-1_T1w','con_0001.nii,1')};
+        matlabbatch{2}.spm.spatial.coreg.write.ref = {fullfile(spm12Folder,subjectList{ss},'3d_task-loc_acq-1000_run-1_T1w',['ss' subjectList{ss} '_task-loc_acq-1000_run-1_space-T1w_desc-preproc_bold_00001.nii,1'])};
         matlabbatch{2}.spm.spatial.coreg.write.source(1) = cfg_dep('Gunzip Files: Gunzipped Files', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{':'}));
         matlabbatch{2}.spm.spatial.coreg.write.roptions.interp = 4;
         matlabbatch{2}.spm.spatial.coreg.write.roptions.wrap = [0 0 0];
         matlabbatch{2}.spm.spatial.coreg.write.roptions.mask = 0;
         matlabbatch{2}.spm.spatial.coreg.write.roptions.prefix = 'T1w-reslice_';
-        
+
         spm_jobman('run', matlabbatch);
         
         newROIName = [subjectList{ss} '_T1w-reslice_' roiList{rr} '_sphere8mm.nii'];
         movefile(fullfile(subjectOutputROIFolder,['T1w-reslice_' subjectList{ss} '_T1w_' roiList{rr} '.nii']),...
                  fullfile(subjectOutputROIFolder,newROIName))
         
+        %% Extract data in T1w
         for tt = 1:nTasks
+            
+            % Very custom adjustment - if the ROI is V1 and the task is the
+            % localizer, use the second contrast (Static vs. Fixation)
+            if tt == 9 && rr>=9
+                conString = 'con_0002.nii,1';
+            else
+                conString = 'con_0001.nii,1';
+            end
             
             [outputMatrix.T1w.CoG_vox(:,rr,ss,tt),outputMatrix.T1w.TValue(rr,ss,tt),outputMatrix.T1w.PeakVoxTValue(rr,ss,tt),outputMatrix.T1w.PeakVoxCoord_vox(:,rr,ss,tt),outputMatrix.T1w.CoG_mm(:,rr,ss,tt),outputMatrix.T1w.PeakVoxCoord_mm(:,rr,ss,tt)] = ...
                 extractROIdata(...
                     fullfile(subjectOutputROIFolder,newROIName), ...
-                    fullfile(spm12Folder,subjectList{ss},['model_' taskList{tt} '_T1w'],'con_0001.nii,1') );
+                    fullfile(spm12Folder,subjectList{ss},['model_' taskList{tt} '_T1w'],...
+                    conString) );
             
         end
         

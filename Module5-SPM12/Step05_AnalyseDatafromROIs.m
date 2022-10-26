@@ -12,7 +12,7 @@ clear,clc
 sdcMethods = {'NONE', 'EPI', 'SPE', 'GRE', 'NLREG'};
 nMethods = length(sdcMethods);
 
-%% Load data from step 02
+%% Load data from step 04
 dataset = struct();
 
 for ii = 1:length(sdcMethods)
@@ -251,7 +251,7 @@ for rr = 1:nROIs
 
             % average for the runs with the same TR and save
             %TVALUE.(roiList{rr}).(TRList{tt})(:,mm) = mean(dataset.(sdcMethods{mm}).outputMatrix.MNI152NLin2009ASym.PeakVoxTValue(rr, :, TRIndexes{tt}) , 3);
-             TVALUE.(roiList{rr}).(TRList{tt})(:,mm) = mean(dataset.(sdcMethods{mm}).outputMatrix.T1w.PeakVoxTValue(rr, :, TRIndexes{tt}) , 3);         
+             TVALUE.(roiList{rr}).(TRList{tt})(:,mm) = mean(dataset.(sdcMethods{mm}).outputMatrix.T1w.TValue(rr, :, TRIndexes{tt}) , 3);         
         end
                
     end
