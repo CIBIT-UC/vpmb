@@ -20,7 +20,7 @@
 %
 % Author: Alexandre Sayal
 % CIBIT, University of Coimbra
-% March 2022
+% March-November 2022
 % ----------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
 
@@ -39,6 +39,9 @@ ssKernel = 6; % Spatial smooting kernel width (in mm)
 % In this dataset, the last run is different (localizer) and as such the HP
 % filter has a different cut-off
 hpfValues = [330*ones(1,8) 32];
+
+%% Load functions
+addpath('functions')
 
 %% Load Packages on sim01
 
@@ -63,6 +66,7 @@ bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-NLREG';
 %bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-EPI';
 %bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-SPE';
 %bidsFolder     = '/DATAPOOL/VPMB/BIDS-VPMB-GRE';
+
 derivFolder    = fullfile(bidsFolder,'derivatives');
 fmriPrepFolder = fullfile(bidsFolder,'derivatives','fmriprep');
 codeFolder     = pwd;
@@ -72,14 +76,14 @@ aux = dir(fullfile(bidsFolder,'sub-*'));
 subjectList = extractfield(aux,'name');
 clear aux
 
-%% Extract Task List from BIDS
+%% Extract Task List from BIDS (VERY CUSTOM)
 aux = dir(fullfile(bidsFolder,'sub-01','func','*_task-*_bold.json'));
 taskList = extractfield(aux,'name');
 
-taskList = cellfun(@(x) x(8:end-10), taskList, 'un', 0); % remove trailing and leading info (VERY custom)
+taskList = cellfun(@(x) x(8:end-10), taskList, 'un', 0); % remove trailing and leading info (VERY CUSTOM)
 nTasks = length(taskList);
 
-%% Error matrix - flag matrix for errors during execution
+%% Initialize Error matrix - flag matrix for errors during execution
 errorMatrix = zeros(length(subjectList),length(taskList));
 
 %% Checks
@@ -110,21 +114,22 @@ parfor ss = 1:length(subjectList)
         mkdir(spmFolder); disp('spm folder created.')
     end
     
-    %% Start the clock and iteration for cleaning
+    %% Start the clock
     startTime = tic;
     
+    %% Iterate on the tasks
     for tt = 1:nTasks
         
         try
             
             %% Build/Select confounds (Physio, WM, CSF, Motion)
-            % build regressors for physiological noise correction (using PhysIO)
-            % extract interest regressors from fmriPrep output
+            % - build regressors for physiological noise correction (using PhysIO)
+            % - extract interest regressors from fmriPrep output
             createConfoundMatrix(taskList{tt},bidsFolder,fmriPrepFolder,spmFolder,subjectID)
             
             %% SPM post-processing
-            % Spatial Smoothing
-            % First-level stats
+            % - spatial Smoothing
+            % - first-level stats
             executeSPMjob(taskList{tt},spaces,ssKernel,hpfValues(tt),spmFolder,fmriPrepFolder,bidsFolder,subjectID)
             
             % cd because SPM might change dir
@@ -149,7 +154,7 @@ parfor ss = 1:length(subjectList)
 end
 
 %% Export output
-save(['Output_' datestr(now,'yyyymmdd-HHMM') '.mat'])
+save(['output/Output_' datestr(now,'yyyymmdd-HHMM') '.mat'])
 
 fprintf('\n\n == Step01_MainSPM completed. ==\n\n')
 fprintf(' == Elapsed time: %0.2f min. ==\n\n',toc/60)

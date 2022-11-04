@@ -48,6 +48,7 @@ taskProperName = strsplit(taskName,'_');
 taskProperName = taskProperName{1};
 
 spm('defaults', 'FMRI');
+spm_jobman('initcfg');
 
 %% Iterate
 for sp = 1:length(spaces)
@@ -163,7 +164,7 @@ for sp = 1:length(spaces)
     matlabbatch{9}.cfg_basicio.file_dir.file_ops.cfg_gzip_files.outdir = {''};
     matlabbatch{9}.cfg_basicio.file_dir.file_ops.cfg_gzip_files.keep = false;
     
-    if strcmp(spaces{sp},'T1w') % the images in T1w space do not have the field 'space-x' in the name
+    if strcmp(spaces{sp},'T1w') % the anat images in T1w space do not have the field 'space-x' in the name
         matlabbatch{10}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.files = {fullfile(fmriPrepFolder,subjectID,'anat',[subjectID '_run-1_desc-preproc_T1w.nii.gz'])};
         matlabbatch{10}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.outdir = {spmFolder};
         matlabbatch{10}.cfg_basicio.file_dir.file_ops.cfg_gunzip_files.keep = true;

@@ -1,8 +1,28 @@
-%%
-
-% Requires:
+%% -- Step05_AnalyseDatafromROIs.m ------------------------------------------------- %%
+% ----------------------------------------------------------------------- %
+% Script for stat analysis of ROI data and plots.
+%
+% Dataset:
+% - Multiband (Visual Perception)
+%
+% Warnings:
+% - a number of values/steps are custom for this dataset - full code review
+% is strongly advised for different datasets
+% - this was designed to run on sim01 - a lot of paths must change if run
+% at any other computer
+%
+% Requirements:
+% - Preprocessed data by fmriPrep v20
+% - FSL 6 functions in path
+% - SPM12 in path
 % - textborder (https://www.mathworks.com/matlabcentral/fileexchange/27383-textborder-higher-contrast-text-using-a-1-pixel-thick-border)
 % - notBoxPlot
+%
+% Author: Alexandre Sayal
+% CIBIT, University of Coimbra
+% October 2022
+% ----------------------------------------------------------------------- %
+% ----------------------------------------------------------------------- %
 
 addpath('/DATAPOOL/home/alexandresayal/Documents/MATLAB/notBoxPlot')
 
@@ -16,7 +36,7 @@ nMethods = length(sdcMethods);
 dataset = struct();
 
 for ii = 1:length(sdcMethods)
-    filename = dir(['Output_Step04_' sdcMethods{ii} '*.mat']);
+    filename = dir(['output/Output_Step04_' sdcMethods{ii} '*.mat']);
     dataset.(sdcMethods{ii}) = load(filename.name,'outputMatrix');
 end
 

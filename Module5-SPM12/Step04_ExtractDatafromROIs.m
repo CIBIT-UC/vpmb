@@ -1,7 +1,7 @@
 %% -- Step04_ExtractDatafromROIs.m ------------------------------------------------- %%
 % ----------------------------------------------------------------------- %
 % Script for executing the second step regarding the SPM analysis of fMRI
-% data after preprocessing with fmriPrep v20 - extracting the T value and 
+% data after preprocessing with fmriPrep v21 - extracting the T value and 
 % coordinates of the various contrasts of interests for the ROIs defined 
 % before. This also reslices the ROIs to each image.
 %
@@ -55,7 +55,7 @@ codeFolder     = pwd;
 
 %% Load data from step 03
 % data from localizer spherical group ROIs - datasetLocROIs
-load('Output_Step03_datasetLocROIs.mat');
+load('output/Output_Step03_datasetLocROIs.mat');
 
 %% Subject, Task, ROI Lists and output matrices
 
@@ -95,6 +95,7 @@ outputMatrix.MNI152NLin2009ASym.PeakVoxCoord_mm = zeros(3,nROIs,nSubjects,nTasks
 
 % init spm
 spm('defaults', 'FMRI');
+spm_jobman('initcfg');
 clear matlabbatch
 
 %% Do

@@ -1,6 +1,6 @@
 %% -- Step02_Run2ndLevel.m ------------------------------------------------- %%
 % ----------------------------------------------------------------------- %
-% Script for executing the group GLM for the localizer run after all
+% Script for executing the group GLM for the localizer run for all
 % correction methods.
 %
 % Dataset:
@@ -31,6 +31,7 @@ contrastN = '0002';
 contrastName = 'StaticPlaid>Fixation';
 
 spm('defaults', 'FMRI');
+spm_jobman('initcfg');
 
 for mm = 1:length(methodList) 
     

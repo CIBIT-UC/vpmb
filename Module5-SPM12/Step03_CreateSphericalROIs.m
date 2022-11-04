@@ -45,7 +45,7 @@ params.radius = sphereRadius;
 space = 'MNI152NLin2009cAsym';
 
 %% Load dataset
-datasetLocROIs = importROIcsv('Localizer_ROISelection_20221014.csv');
+datasetLocROIs = importROIcsv('data/Localizer_ROISelection_20221014.csv');
 
 %% Iterate on the methods
 
@@ -78,4 +78,4 @@ for mm = 1:nMethods
 end
 
 %%
-save('Output_Step03_datasetLocROIs.mat','datasetLocROIs')
+save('output/Output_Step03_datasetLocROIs.mat','datasetLocROIs')
