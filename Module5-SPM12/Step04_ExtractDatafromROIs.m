@@ -31,6 +31,7 @@ tic
 %% Load Packages on sim01
 % SPM12
 addpath('/SCRATCH/software/toolboxes/spm12')
+addpath('functions')
 
 %% SETTINGS
 
@@ -136,16 +137,15 @@ for rr = 1:nROIs
             % Very custom adjustment - if the ROI is V1 and the task is the
             % localizer, use the second contrast (Static vs. Fixation)
             if tt == 9 && rr>=9
-                conString = 'con_0002.nii,1';
+                conString = 'spmT_0002.nii,1';
             else
-                conString = 'con_0001.nii,1';
+                conString = 'spmT_0001.nii,1';
             end
             
             [outputMatrix.MNI152NLin2009ASym.CoG_vox(:,rr,ss,tt),outputMatrix.MNI152NLin2009ASym.TValue(rr,ss,tt),outputMatrix.MNI152NLin2009ASym.PeakVoxTValue(rr,ss,tt),outputMatrix.MNI152NLin2009ASym.PeakVoxCoord_vox(:,rr,ss,tt),outputMatrix.MNI152NLin2009ASym.CoG_mm(:,rr,ss,tt),outputMatrix.MNI152NLin2009ASym.PeakVoxCoord_mm(:,rr,ss,tt)] = ...
                 extractROIdata(...
                     fullfile(subjectOutputROIFolder,newROIName), ...
-                    fullfile(spm12Folder,subjectList{ss},['model_' taskList{tt} '_MNI152NLin2009cAsym'],...
-                    conString) );
+                    fullfile(spm12Folder,subjectList{ss},['model_' taskList{tt} '_MNI152NLin2009cAsym'],conString) );
             
         end
         
@@ -187,9 +187,9 @@ for rr = 1:nROIs
             % Very custom adjustment - if the ROI is V1 and the task is the
             % localizer, use the second contrast (Static vs. Fixation)
             if tt == 9 && rr>=9
-                conString = 'con_0002.nii,1';
+                conString = 'spmT_0002.nii,1';
             else
-                conString = 'con_0001.nii,1';
+                conString = 'spmT_0001.nii,1';
             end
             
             [outputMatrix.T1w.CoG_vox(:,rr,ss,tt),outputMatrix.T1w.TValue(rr,ss,tt),outputMatrix.T1w.PeakVoxTValue(rr,ss,tt),outputMatrix.T1w.PeakVoxCoord_vox(:,rr,ss,tt),outputMatrix.T1w.CoG_mm(:,rr,ss,tt),outputMatrix.T1w.PeakVoxCoord_mm(:,rr,ss,tt)] = ...
