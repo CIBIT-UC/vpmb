@@ -40,7 +40,7 @@ baseFolder = '/DATAPOOL/VPMB';
 
 % Distortion correction method (affects folders)
 % Options: NLREG, NONE, EPI, SPE, GRE
-sdcMethod = 'NLREG';
+sdcMethod = 'GRE';
 
 %% Folders
 bidsFolder      = fullfile(baseFolder,['BIDS-VPMB-' sdcMethod]);
