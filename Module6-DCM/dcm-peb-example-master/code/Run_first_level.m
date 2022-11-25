@@ -1,3 +1,5 @@
+clear,clc
+
 %% Settings
 
 % MRI scanner settings

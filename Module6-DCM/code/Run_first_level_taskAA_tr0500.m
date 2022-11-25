@@ -1,15 +1,18 @@
+clear,clc
+
 %% Settings
 
 % MRI scanner settings
-TR = 0.5;   % Repetition time (secs)
-TE = 0.032;  % Echo time (secs)
+TR = 1;   % Repetition time (secs)
+TE = 0.0302;  % Echo time (secs)
 
 % Experiment settings
+subjectList = {'01';'02';'03';'05';'06';'07';'08';'10';'11';'12';'15';'16';'21';'22';'23'};
 nsubjects   = 15;
 nregions    = 3; 
 nconditions = 3;
 
-taskName = 'task-AA_tr-0500';
+taskName = 'task-AA_tr-1000';
 
 % Index of each condition in the DCM
 MOTION=1; COHERENT=2; INCOHERENT=3;
@@ -39,9 +42,9 @@ d = zeros(nregions,nregions,0);
 %% Specify
 
 start_dir = pwd;
-for subject = 1:nsubjects
+for ss = 1:nsubjects
     
-    name = sprintf('sub-%02d',subject);
+    name = sprintf('sub-%s',subjectList{ss});
     
     % Load SPM
     glm_dir = fullfile('..','GLM',name);
@@ -49,16 +52,16 @@ for subject = 1:nsubjects
     SPM     = SPM.SPM;
     
     % Load ROIs
-    f = {fullfile(glm_dir,'VOI_V3a_1.mat');
-         fullfile(glm_dir,'VOI_hMT_1.mat');
-         fullfile(glm_dir,'VOI_SPL_1.mat')};    
+    f = {fullfile(glm_dir,taskName,'VOI_V3a_1.mat');
+         fullfile(glm_dir,taskName,'VOI_hMT_1.mat');
+         fullfile(glm_dir,taskName,'VOI_SPL_1.mat')};    
     for r = 1:length(f)
         XY = load(f{r});
         xY(r) = XY.xY;
     end
     
     % Move to output directory
-    cd(glm_dir);
+    cd(fullfile(glm_dir,taskName));
     
     % Select whether to include each condition from the design matrix
     % (Motion, Coherent, Incoherent)
@@ -89,9 +92,13 @@ end
 
 % Turn on/off parallel processing
 use_parfor = true;
+maxNumCompThreads(36);
     
 % Find all DCM files
-dcms = spm_select('FPListRec','../GLM',taskName,'DCM_full.mat');
+dcms = '';
+for ss = 1:nsubjects
+    dcms(ss,:) = spm_select('FPListRec',['../GLM/sub-' subjectList{ss} '/' taskName],'DCM_full.mat');
+end
 
 % Prepare output directory
 out_dir = fullfile('../analyses',taskName);
@@ -130,55 +137,58 @@ end
 % -------------------------------------------------------------------------
 % Both
 b_task_fam = {};
-b_task_fam{1}(:,:,1) = ones(4); % Objects
-b_task_fam{1}(:,:,2) = ones(4); % Words
+b_task_fam{1}(:,:,1) = ones(3); % Coherent
+b_task_fam{1}(:,:,2) = ones(3); % Incoherent
 
 % Words
-b_task_fam{2}(:,:,1) = zeros(4); % Objects
-b_task_fam{2}(:,:,2) = ones(4);  % Words
+b_task_fam{2}(:,:,1) = zeros(3); % Coherent
+b_task_fam{2}(:,:,2) = ones(3);  % Incoherent
 
 % Objects
-b_task_fam{3}(:,:,1) = ones(4);  % Objects
-b_task_fam{3}(:,:,2) = zeros(4); % Words
+b_task_fam{3}(:,:,1) = ones(3);  % Coherent
+b_task_fam{3}(:,:,2) = zeros(3); % Incoherent
 
-task_fam_names = {'Both','Words','Objects'};
+task_fam_names = {'Both','Incoherent','Coherent'};
 
-% Define B-matrix for each family (factor: dorsal-ventral)
+% Define B-matrix for each family (factor: visual-visioparietal)
 % -------------------------------------------------------------------------
-% Both
-b_dv_fam{1} = eye(4);
+% All
+b_dv_fam{1} = eye(3);
 
-% Dorsal
-b_dv_fam{2} = [0 0 0 0;
-               0 1 0 0;
-               0 0 0 0;
-               0 0 0 1];
-% Ventral   
-b_dv_fam{3} = [1 0 0 0;
-               0 0 0 0;
-               0 0 1 0;
-               0 0 0 0];
-
-b_dv_fam_names = {'Both','Dorsal','Ventral'};
+% Visual
+b_dv_fam{2} = [1 0 0
+               0 1 0
+               0 0 0];
+% Visio-parietal   
+b_dv_fam{3} = [0 0 0
+               0 1 0
+               0 0 1];
            
-% Define B-matrix for each family (factor: left-right)
-% -------------------------------------------------------------------------
-% Both
-b_lr_fam{1} = eye(4);
+% hMT only   
+b_dv_fam{3} = [0 0 0
+               0 1 0
+               0 0 0];
 
-% Left
-b_lr_fam{2} = [1 0 0 0;
-               0 1 0 0;
-               0 0 0 0;
-               0 0 0 0];
-
-% Right  
-b_lr_fam{3} = [0 0 0 0;
-               0 0 0 0;
-               0 0 1 0;
-               0 0 0 1];  
-
-b_lr_fam_names = {'Both','Left','Right'};
+b_dv_fam_names = {'All','Visual','Visio-parietal','hMT'};
+           
+% % Define B-matrix for each family (factor: left-right)
+% % -------------------------------------------------------------------------
+% % Both
+% b_lr_fam{1} = eye(4);
+% 
+% % Left
+% b_lr_fam{2} = [1 0 0 0;
+%                0 1 0 0;
+%                0 0 0 0;
+%                0 0 0 0];
+% 
+% % Right  
+% b_lr_fam{3} = [0 0 0 0;
+%                0 0 0 0;
+%                0 0 1 0;
+%                0 0 0 1];  
+% 
+% b_lr_fam_names = {'Both','Left','Right'};
            
 % Make a DCM for each mixture of these factors
 % -------------------------------------------------------------------------
@@ -198,15 +208,14 @@ GCM_templates = {};
 m = 1;
 for t = 1:length(b_task_fam)
     for dv = 1:length(b_dv_fam)
-        for lr = 1:length(b_lr_fam)
 
             % Prepare B-matrix
-            b = zeros(4,4,3);
-            b(:,:,2:3) = b_dv_fam{dv} & b_lr_fam{lr} & b_task_fam{t};
+            b = zeros(3,3,3);
+            b(:,:,2:3) = b_dv_fam{dv} & b_task_fam{t};
 
             % Prepare model name
-            name = sprintf('Task: %s, Dorsoventral: %s, Hemi: %s',...
-                task_fam_names{t}, b_dv_fam_names{dv}, b_lr_fam_names{lr});
+            name = sprintf('Task: %s, Dorsoventral: %s',...
+                task_fam_names{t}, b_dv_fam_names{dv});
 
             % Build minimal DCM
             DCM = struct();
@@ -221,19 +230,16 @@ for t = 1:length(b_task_fam)
             % Record the assignment of this model to each family
             task_family(m) = t;
             b_dv_family(m) = dv;
-            b_lr_family(m) = lr;
             m = m + 1;
 
-        end
     end
 end
 
 % Add a null model with no modulation
 % -------------------------------------------------------------------------
-b = zeros(4);
+b = zeros(3);
 c = [1 0 0;
      1 0 0;
-     1 0 0;  
      1 0 0];
 name = 'Task: None';
 
@@ -246,7 +252,6 @@ GCM_templates{1,m} = DCM;
 
 % Record the assignment of this model to each family
 b_dv_family(m) = length(b_dv_fam)+1;
-b_lr_family(m) = length(b_lr_fam)+1;
 task_family(m) = length(b_task_fam)+1;
 
 m = m + 1;    
@@ -254,7 +259,7 @@ m = m + 1;
 % Save
 GCM = GCM_templates;
 save(fullfile('../analyses',taskName,'GCM_templates.mat'),'GCM',...
-    'task_family','b_dv_family','b_lr_family');
+    'task_family','b_dv_family');
 
 %% Run diagnostics
 load(fullfile('../analyses',taskName,'GCM_full.mat'));
