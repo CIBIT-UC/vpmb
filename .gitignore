@@ -3,4 +3,4 @@
 .DS_Store
 *.m~
 Module6-DCM/analyses/*
-Module6-DCM/cognestic22_multimodal_dcm/data/*
+Module6-DCM/cognestic22_multimodal_dcm/data/**
