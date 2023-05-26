@@ -37,7 +37,11 @@ for rr = 1:nROIs
         spmMat = fullfile(spmMatFolder,['sub-' subjectList{combSub(cc)}],...
             ['model_task-' runList{combRun(cc)} '_acq-' trList{combTR(cc)} '_run-1_MNI152NLin2009cAsym'],'SPM.mat');
         
-        roi3 = fullfile('/DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module6-DCM','GLM',['sub-' subjectList{combSub(cc)}],['task-' runList{combRun(cc)} '_tr-' trList{combTR(cc)}],...
+        if ~exist(fullfile('/DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module6-DCM','GLMrois',['sub-' subjectList{combSub(cc)}],['task-' runList{combRun(cc)} '_tr-' trList{combTR(cc)}]),'dir')
+            mkdir(fullfile('/DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module6-DCM','GLMrois',['sub-' subjectList{combSub(cc)}],['task-' runList{combRun(cc)} '_tr-' trList{combTR(cc)}]));
+        end
+        
+        roi3 = fullfile('/DATAPOOL/home/alexandresayal/GitRepos/vpmb/Module6-DCM','GLMrois',['sub-' subjectList{combSub(cc)}],['task-' runList{combRun(cc)} '_tr-' trList{combTR(cc)}],...
             finalROINames{rr});
         
         %%

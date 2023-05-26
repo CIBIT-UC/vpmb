@@ -3,7 +3,7 @@ clear,clc
 %% Settings
 
 % MRI scanner settings
-TR = 1;   % Repetition time (secs)
+TR = 0.5;   % Repetition time (secs)
 TE = 0.0302;  % Echo time (secs)
 
 % Experiment settings
@@ -12,7 +12,7 @@ nsubjects   = 15;
 nregions    = 3; 
 nconditions = 3;
 
-taskName = 'task-AA_tr-1000';
+taskName = 'task-AA_tr-0500';
 
 % Index of each condition in the DCM
 MOTION=1; COHERENT=2; INCOHERENT=3;
@@ -29,8 +29,8 @@ a(SPL,V3a) = 0;
 
 % B-matrix
 b(:,:,MOTION)     = zeros(nregions); % Task
-b(:,:,COHERENT) = eye(nregions);   % Pictures
-b(:,:,INCOHERENT)    = eye(nregions);   % Words
+b(:,:,COHERENT) = eye(nregions);   % Coherent
+b(:,:,INCOHERENT)    = eye(nregions);   % Incoherent
 
 % C-matrix
 c = zeros(nregions,nconditions);
